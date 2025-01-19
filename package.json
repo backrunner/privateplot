@@ -1,7 +1,9 @@
 {
-  "name": "privateplot",
+  "name": "private-plot",
   "type": "module",
-  "version": "0.0.1",
+  "version": "0.1.0",
+  "author": "BackRunner",
+  "description": "Yet another blog framework based on Astro",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
@@ -9,9 +11,15 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@astrojs/cloudflare": "^12.2.0",
     "@astrojs/mdx": "^4.0.6",
+    "@astrojs/preact": "^4.0.2",
     "@astrojs/rss": "^4.0.11",
     "@astrojs/sitemap": "^3.2.1",
-    "astro": "^5.1.7"
+    "astro": "^5.1.7",
+    "preact": "^10.25.4"
+  },
+  "devDependencies": {
+    "sass": "^1.83.4"
   }
 }

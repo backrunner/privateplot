@@ -1,0 +1,146 @@
+---
+interface Props {
+  /**
+   * The opacity of the spotlight effect
+   */
+  opacity?: number;
+  /**
+   * The blur radius of the spotlight effect
+   */
+  blur?: number;
+  /**
+   * The color of the spotlight
+   */
+  color?: string;
+  /**
+   * The horizontal position of the spotlight in percentage
+   */
+  position?: number;
+  /**
+   * The rotation angle in degrees
+   */
+  rotate?: number;
+  /**
+   * The width of the beam at the top
+   */
+  topWidth?: number;
+  /**
+   * The width of the beam at the bottom
+   */
+  bottomWidth?: number;
+}
+
+const {
+  opacity = 0.6,
+  blur = 48,
+  color = "#ffecd1",
+  position = 15,
+  rotate = 68,
+  topWidth = 460,
+  bottomWidth = 1680,
+} = Astro.props;
+
+// Convert position to actual coordinates
+const viewBoxWidth = 2400;
+const viewBoxHeight = 2400;
+const x = (position / 100) * viewBoxWidth;
+
+// Calculate rotated coordinates
+const rad = (rotate * Math.PI) / 180;
+const dx = Math.sin(rad) * viewBoxHeight * 0.4;
+
+// Calculate half widths for easier path construction
+const halfTopWidth = topWidth / 2;
+const halfBottomWidth = bottomWidth / 2;
+---
+
+<div class="spotlight-container">
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="100%"
+    height="100%"
+    viewBox={`0 0 ${viewBoxWidth} ${viewBoxHeight}`}
+    preserveAspectRatio="xMidYMid slice"
+  >
+    <defs>
+      <filter id="spotlight-blur" color-interpolation-filters="sRGB">
+        <feGaussianBlur stdDeviation={blur} />
+      </filter>
+      <linearGradient id="spotlight-gradient" x1="0.5" y1="0" x2="0.5" y2="1">
+        <stop offset="0" stop-color={color} stop-opacity={opacity * 0.2} />
+        <stop offset="0.2" stop-color={color} stop-opacity={opacity * 0.6} />
+        <stop offset="0.5" stop-color={color} stop-opacity={opacity} />
+        <stop offset="0.8" stop-color={color} stop-opacity={opacity * 0.6} />
+        <stop offset="1" stop-color={color} stop-opacity={opacity * 0.2} />
+      </linearGradient>
+    </defs>
+    <path
+      class="spotlight-beam"
+      d={`
+        M ${x - halfTopWidth} -100
+        L ${x - halfBottomWidth + dx} ${viewBoxHeight + 100}
+        L ${x + halfBottomWidth + dx} ${viewBoxHeight + 100}
+        L ${x + halfTopWidth} -100
+        Z
+      `}
+      fill="url(#spotlight-gradient)"
+      filter="url(#spotlight-blur)"
+      opacity={opacity}
+    >
+      <animate
+        attributeName="d"
+        dur="1.2s"
+        begin="0s"
+        fill="freeze"
+        calcMode="spline"
+        keySplines="0.4 0 0.2 1"
+        values={`
+          M ${x - halfTopWidth} -100
+          L ${x - halfTopWidth * 1.2 + dx} ${viewBoxHeight + 100}
+          L ${x + halfTopWidth * 1.2 + dx} ${viewBoxHeight + 100}
+          L ${x + halfTopWidth} -100
+          Z;
+          M ${x - halfTopWidth} -100
+          L ${x - halfBottomWidth + dx} ${viewBoxHeight + 100}
+          L ${x + halfBottomWidth + dx} ${viewBoxHeight + 100}
+          L ${x + halfTopWidth} -100
+          Z
+        `}
+      />
+    </path>
+  </svg>
+</div>
+
+<style define:vars={{ x, dx, halfTopWidth, halfBottomWidth }}>
+  .spotlight-container {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+    mix-blend-mode: plus-lighter;
+    filter: blur(4px);
+  }
+
+  .spotlight-beam {
+    animation: spotlight-fade 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  @keyframes spotlight-fade {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 0.6;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .spotlight-beam {
+      animation: none;
+      opacity: 1;
+    }
+  }
+</style>

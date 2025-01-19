@@ -1,0 +1,17 @@
+.articleList {
+  width: 100%;
+  margin: 24px auto 0 auto;
+}
+
+.articleContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.loadingIndicator {
+  text-align: center;
+  padding: 20px;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.875rem;
+} 

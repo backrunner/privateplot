@@ -1,0 +1,103 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { formatDate } from '../../utils/date';
+
+type Props = CollectionEntry<'article'>['data'];
+
+const { title, description, createdDate, updatedDate } = Astro.props;
+---
+
+<article class="article-content">
+  <div class="prose">
+    <h1 class="title">{title}</h1>
+
+    <div class="meta">
+      <span class="date-capsule">
+        Created: {formatDate(createdDate)}
+      </span>
+      {updatedDate && (
+        <span class="date-capsule">
+          Updated: {formatDate(updatedDate)}
+        </span>
+      )}
+    </div>
+
+    {description && (
+      <blockquote class="description">
+        {description}
+      </blockquote>
+    )}
+
+    <div class="content">
+      <slot />
+    </div>
+  </div>
+</article>
+
+<style lang="scss">
+  .article-content {
+		width: 100%;
+    margin: 1rem auto;
+    padding: 2rem;
+		box-sizing: border-box;
+		border-radius: 2rem;
+		background: linear-gradient(154deg, rgba(32, 32, 32, 0.8) 0%,rgba(32, 32, 32, 0.25) 100%);
+		backdrop-filter: blur(1.5rem);
+
+    .title {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-bottom: 1.5rem;
+      line-height: 1.2;
+    }
+
+    .meta {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+
+      .date-capsule {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.875rem;
+      }
+    }
+
+    .description {
+      margin: 2rem 0;
+      padding: 1.5rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-left: 4px solid rgba(255, 255, 255, 0.2);
+      border-radius: 0.5rem;
+      font-size: 1.1rem;
+      line-height: 1.6;
+    }
+
+    .content {
+      font-size: 1.1rem;
+      line-height: 1.8;
+
+      :global(h2) {
+        font-size: 1.8rem;
+        margin: 2rem 0 1rem;
+      }
+
+      :global(h3) {
+        font-size: 1.5rem;
+        margin: 1.5rem 0 1rem;
+      }
+
+      :global(p) {
+        margin: 1rem 0;
+      }
+
+      :global(pre) {
+        margin: 1.5rem 0;
+        padding: 1rem;
+        border-radius: 0.5rem;
+        background: rgba(0, 0, 0, 0.3);
+      }
+    }
+  }
+</style>
