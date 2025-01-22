@@ -9,7 +9,10 @@ const { title, description, createdDate, updatedDate } = Astro.props;
 
 <article class="article-content">
   <div class="prose">
-    <h1 class="title">{title}</h1>
+    <div class="title-container">
+      <div class="title-border" />
+      <h1 class="title">{title}</h1>
+    </div>
 
     <div class="meta">
       <span class="date-capsule">
@@ -37,64 +40,102 @@ const { title, description, createdDate, updatedDate } = Astro.props;
 <style lang="scss">
   .article-content {
 		width: 100%;
-    margin: 1rem auto;
-    padding: 2rem;
+    margin: 0.875em auto;
+    padding: 0.875rem 1.75rem;
 		box-sizing: border-box;
 		border-radius: 2rem;
-		background: linear-gradient(154deg, rgba(32, 32, 32, 0.8) 0%,rgba(32, 32, 32, 0.25) 100%);
+		background: linear-gradient(142deg, rgba(42, 42, 44, 0.8) 0%,rgba(42, 42, 44, 0.25) 100%);
 		backdrop-filter: blur(1.5rem);
 
-    .title {
-      font-size: 2.5rem;
-      font-weight: 700;
-      margin-bottom: 1.5rem;
-      line-height: 1.2;
+    .title-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+
+      .title-border {
+        position: absolute;
+        left: 0;
+        width: 4px;
+        height: 42%;
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 2px;
+        box-sizing: border-box;
+      }
+
+      .title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        line-height: 1.25;
+        padding-left: 1.25rem;
+        margin: 1.375rem 0;
+      }
     }
 
     .meta {
       display: flex;
-      gap: 1rem;
-      margin-bottom: 2rem;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
 
       .date-capsule {
         background: rgba(255, 255, 255, 0.1);
-        padding: 0.5rem 1rem;
+        padding: 0.35rem 0.75rem;
         border-radius: 20px;
         font-size: 0.875rem;
       }
     }
 
     .description {
-      margin: 2rem 0;
-      padding: 1.5rem;
+      margin: 1.5rem 0;
+      padding: 1rem;
       background: rgba(255, 255, 255, 0.05);
       border-left: 4px solid rgba(255, 255, 255, 0.2);
       border-radius: 0.5rem;
-      font-size: 1.1rem;
+      font-size: 1rem;
       line-height: 1.6;
     }
 
     .content {
-      font-size: 1.1rem;
-      line-height: 1.8;
+      font-size: 1rem;
+      line-height: 1.7;
+
+      :global(h1) {
+        font-size: 1.75rem;
+        margin: 1.75rem 0 0.875rem;
+      }
 
       :global(h2) {
-        font-size: 1.8rem;
-        margin: 2rem 0 1rem;
+        font-size: 1.6rem;
+        margin: 1.625rem 0 0.75rem;
       }
 
       :global(h3) {
-        font-size: 1.5rem;
-        margin: 1.5rem 0 1rem;
+        font-size: 1.3rem;
+        margin: 1.25rem 0 0.75rem;
+      }
+
+      :global(h4) {
+        font-size: 1.15rem;
+        margin: 1rem 0 0.5rem;
+      }
+
+      :global(h5) {
+        font-size: 1.05rem;
+        margin: 0.875rem 0 0.5rem;
+      }
+
+      :global(h6) {
+        font-size: 1rem;
+        margin: 0.75rem 0 0.5rem;
+        color: rgba(255, 255, 255, 0.8);
       }
 
       :global(p) {
-        margin: 1rem 0;
+        margin: 0.75rem 0;
       }
 
       :global(pre) {
-        margin: 1.5rem 0;
-        padding: 1rem;
+        margin: 1.25rem 0;
+        padding: 0.75rem;
         border-radius: 0.5rem;
         background: rgba(0, 0, 0, 0.3);
       }

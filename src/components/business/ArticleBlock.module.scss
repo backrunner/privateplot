@@ -1,6 +1,6 @@
-.articleBlock {
+.article-block {
   position: relative;
-  background: linear-gradient(154deg, rgba(32, 32, 32, 0.8) 0%,rgba(32, 32, 32, 0.25) 100%);
+  background: linear-gradient(142deg, rgba(42, 42, 44, 0.8) 0%,rgba(42, 42, 44, 0.25) 100%);
   backdrop-filter: blur(1.5rem);
   border-radius: 2rem;
   padding: 1.5rem;
@@ -10,37 +10,55 @@
   &:hover {
     transform: translateY(-2px);
     filter: brightness(1.06);
+
+    .article-block__title-border {
+      background-color: rgba(255, 255, 255, 0.5);
+    }
   }
 }
 
-.titleContainer {
+.article-block__title-wrapper {
   display: flex;
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 1rem;
 }
 
-.titleBorder {
+.article-block__title-border {
   width: 0.25rem;
   height: 1.5rem;
-  background: rgba(255, 255, 255, 0.8);
+  background-color: rgba(255, 255, 255, 0.3);
   border-radius: 2px;
+  transition: background-color 0.3s ease;
 }
 
-.title {
+.article-block__title-link {
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+  transition: text-shadow 0.3s ease, color 0.3s ease;
+  color: var(--text-80);
+
+  &:hover {
+    text-shadow: 0 0 0.75rem rgba(242, 242, 242, 0.2);
+    color: var(--text);
+  }
+}
+
+.article-block__title {
   font-size: 1.25rem;
   font-weight: 600;
   margin: 0;
-  color: var(--text);
+  color: var(--text-80);
 }
 
-.timeInfo {
+.article-block__time-info {
   display: flex;
   gap: 0.75rem;
   margin-bottom: 1rem;
 }
 
-.timeTag {
+.article-block__time-tag {
   background: rgba(255, 255, 255, 0.1);
   padding: 0.25rem 0.75rem;
   border-radius: 1rem;
@@ -48,20 +66,20 @@
   color: var(--text-80);
 }
 
-.content {
+.article-block__content {
   display: flex;
   flex-direction: column;
   gap: 1rem;
 }
 
-.summary {
+.article-block__summary {
   color: var(--text-90);
   line-height: 1.6;
   margin: 0;
   font-size: 1rem;
 }
 
-.readFull {
+.article-block__read-more {
   align-self: flex-end;
   background: rgba(255, 255, 255, 0.1);
   color: var(--text-80);

@@ -19,19 +19,21 @@ export const ArticleBlock = ({ title, summary, createdAt, updatedAt, slug }: Pro
   }, []);
 
   return (
-    <article class={styles.articleBlock}>
-      <div class={styles.titleContainer}>
-        <div class={styles.titleBorder} />
-        <h2 class={styles.title}>{title}</h2>
+    <article class={styles['article-block']}>
+      <div class={styles['article-block__title-wrapper']}>
+        <div class={styles['article-block__title-border']} />
+        <a href={`/article/${slug}`} class={styles['article-block__title-link']}>
+          <h2 class={styles['article-block__title']}>{title}</h2>
+        </a>
       </div>
-      <div class={styles.timeInfo}>
-        <span class={styles.timeTag}>Updated: {formatDate(updatedAt)}</span>
-        <span class={styles.timeTag}>Created: {formatDate(createdAt)}</span>
+      <div class={styles['article-block__time-info']}>
+        <span class={styles['article-block__time-tag']}>Updated: {formatDate(updatedAt)}</span>
+        <span class={styles['article-block__time-tag']}>Created: {formatDate(createdAt)}</span>
       </div>
-      <div class={styles.content}>
-        <p class={styles.summary}>{summary}</p>
-        <a href={`/article/${slug}`} class={styles.readFull}>Read Full</a>
+      <div class={styles['article-block__content']}>
+        <p class={styles['article-block__summary']}>{summary}</p>
+        <a href={`/article/${slug}`} class={styles['article-block__read-more']}>Read Full</a>
       </div>
     </article>
   );
-}; 
+};
