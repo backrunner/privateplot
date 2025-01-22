@@ -1,7 +1,44 @@
 ---
-const today = new Date();
+import { ENABLE_COPYRIGHT, ENABLE_POWERED_BY } from '../../consts';
 ---
 
-<footer>
-	&copy; {today.getFullYear()} Your name here. All rights reserved.
+<footer class="page-footer">
+	<div>
+		{ENABLE_POWERED_BY && (
+			<p>Powered by PrivatePlot.</p>
+		)}
+		{ENABLE_COPYRIGHT && (
+			<p>All articles are licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="license noopener noreferrer">CC BY-SA 4.0</a>.</p>
+		)}
+	</div>
 </footer>
+
+<style>
+	.page-footer {
+		margin-top: 6rem;
+		font-size: 0.875rem;
+		text-align: right;
+
+		p {
+			margin-top: 0;
+			margin-bottom: 0.25rem;
+		}
+
+		p:last-child {
+			margin-bottom: 0;
+		}
+
+		p, a {
+			color: rgba(255, 255, 255, 0.06);
+		}
+
+		a {
+			color: inherit;
+			text-decoration: underline;
+			transition: color 0.3s ease;
+		}
+		a:hover {
+			color: rgba(255, 255, 255, 0.5);
+		}
+	}
+</style>
