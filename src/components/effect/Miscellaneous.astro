@@ -1,0 +1,336 @@
+---
+interface Props {
+  count?: number; // Number of spots
+  minSize?: number; // Minimum spot size in pixels
+  maxSize?: number; // Maximum spot size in pixels
+  colors?: string[]; // Array of colors for spots
+  opacity?: number; // Opacity of spots
+  speed?: number; // Particle moving speed
+  blur?: number;
+}
+
+const { count = 200, minSize = 0.1, maxSize = 1, colors = ['#ffecd1', '#fafafa', '#dadada'], opacity = 0.06, speed = 0.1, blur = 3.0 } = Astro.props;
+---
+
+<canvas id="particleCanvas" data-count={count} data-min-size={minSize} data-max-size={maxSize} data-opacity={opacity} data-speed={speed} data-blur={blur} data-colors={JSON.stringify(colors)}></canvas>
+
+<script>
+  const vertexShaderSource = `
+    attribute vec2 position;
+    attribute float size;
+    attribute vec3 color;
+    attribute float alpha;
+
+    uniform vec2 resolution;
+
+    varying vec3 vColor;
+    varying float vAlpha;
+
+    void main() {
+      vec2 pos = (position / resolution) * 2.0 - 1.0;
+      gl_Position = vec4(pos.x, -pos.y, 0, 1);
+      gl_PointSize = size * 5.0;
+      vColor = color;
+      vAlpha = alpha;
+    }
+  `;
+
+  const fragmentShaderSource = `
+    precision highp float;
+
+    varying vec3 vColor;
+    varying float vAlpha;
+
+    void main() {
+      vec2 coord = gl_PointCoord - vec2(0.5);
+      float r = length(coord) * 2.0;
+      float a = 1.0 - smoothstep(0.0, 1.0, r);
+      gl_FragColor = vec4(vColor, a * vAlpha * 5.0);
+    }
+  `;
+
+  class WebGLParticles {
+    private gl: WebGLRenderingContext;
+    private program: WebGLProgram;
+    private particles: Float32Array;
+    private particleBuffer: WebGLBuffer;
+    private particleData: Float32Array; // Store additional particle data
+    private count: number;
+    private width: number;
+    private height: number;
+    private config: any;
+    private hasLoggedDebug = false;
+
+    constructor(canvas: HTMLCanvasElement, config: any) {
+      this.count = config.count;
+      this.width = canvas.width;
+      this.height = canvas.height;
+
+      // Store config for later use
+      this.config = config;
+
+      // Initialize WebGL with alpha
+      this.gl = canvas.getContext('webgl', {
+        alpha: true,
+        premultipliedAlpha: false,
+        antialias: true,
+      })!;
+
+      if (!this.gl) {
+        throw new Error('WebGL not supported');
+      }
+
+      // Create and compile shaders
+      const vertexShader = this.createShader(this.gl.VERTEX_SHADER, vertexShaderSource);
+      const fragmentShader = this.createShader(this.gl.FRAGMENT_SHADER, fragmentShaderSource);
+
+      if (!vertexShader || !fragmentShader) {
+        throw new Error('Failed to create shaders');
+      }
+
+      // Create and link program
+      const program = this.createProgram(vertexShader, fragmentShader);
+
+      if (!program) {
+        throw new Error('Failed to create shader program');
+      }
+
+      this.program = program;
+
+      // Use program immediately after creation
+      this.gl.useProgram(this.program);
+
+      // Enable blending
+      this.gl.enable(this.gl.BLEND);
+      this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE);
+
+      // Initialize particles
+      this.particles = new Float32Array(this.count * 7); // x, y, size, r, g, b, a
+      this.particleData = new Float32Array(this.count * 3); // speedY, speedX, baseOpacity
+      this.initParticles(config);
+
+      // Create and bind buffer
+      this.particleBuffer = this.gl.createBuffer()!;
+      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.particleBuffer);
+      this.gl.bufferData(this.gl.ARRAY_BUFFER, this.particles, this.gl.DYNAMIC_DRAW);
+
+      // Set up attributes
+      const stride = 7 * 4; // 7 floats * 4 bytes
+      const positionLoc = this.gl.getAttribLocation(this.program, 'position');
+      const sizeLoc = this.gl.getAttribLocation(this.program, 'size');
+      const colorLoc = this.gl.getAttribLocation(this.program, 'color');
+      const alphaLoc = this.gl.getAttribLocation(this.program, 'alpha');
+
+      // Verify attribute locations
+      if (positionLoc === -1 || sizeLoc === -1 || colorLoc === -1 || alphaLoc === -1) {
+        throw new Error('Failed to get attribute locations');
+      }
+
+      this.gl.vertexAttribPointer(positionLoc, 2, this.gl.FLOAT, false, stride, 0);
+      this.gl.vertexAttribPointer(sizeLoc, 1, this.gl.FLOAT, false, stride, 2 * 4);
+      this.gl.vertexAttribPointer(colorLoc, 3, this.gl.FLOAT, false, stride, 3 * 4);
+      this.gl.vertexAttribPointer(alphaLoc, 1, this.gl.FLOAT, false, stride, 6 * 4);
+
+      this.gl.enableVertexAttribArray(positionLoc);
+      this.gl.enableVertexAttribArray(sizeLoc);
+      this.gl.enableVertexAttribArray(colorLoc);
+      this.gl.enableVertexAttribArray(alphaLoc);
+
+      // Get and verify uniform location
+      const resolutionLoc = this.gl.getUniformLocation(this.program, 'resolution');
+      if (!resolutionLoc) {
+        throw new Error('Failed to get uniform location');
+      }
+
+      // Set resolution uniform
+      this.gl.uniform2f(resolutionLoc, this.width, this.height);
+    }
+
+    private createShader(type: number, source: string): WebGLShader | null {
+      const shader = this.gl.createShader(type)!;
+      this.gl.shaderSource(shader, source);
+      this.gl.compileShader(shader);
+
+      if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
+        console.error('Shader compile error:', this.gl.getShaderInfoLog(shader));
+        this.gl.deleteShader(shader);
+        return null;
+      }
+      return shader;
+    }
+
+    private createProgram(vertexShader: WebGLShader, fragmentShader: WebGLShader): WebGLProgram {
+      const program = this.gl.createProgram()!;
+      this.gl.attachShader(program, vertexShader);
+      this.gl.attachShader(program, fragmentShader);
+      this.gl.linkProgram(program);
+
+      if (!this.gl.getProgramParameter(program, this.gl.LINK_STATUS)) {
+        console.error('Program link error:', this.gl.getProgramInfoLog(program));
+        this.gl.deleteProgram(program);
+        throw new Error('Failed to link program');
+      }
+
+      // Clean up shaders after linking
+      this.gl.deleteShader(vertexShader);
+      this.gl.deleteShader(fragmentShader);
+
+      return program;
+    }
+
+    private hexToRgb(hex: string): number[] {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? [parseInt(result[1], 16) / 255, parseInt(result[2], 16) / 255, parseInt(result[3], 16) / 255] : [1, 1, 1];
+    }
+
+    private initParticles(config: any) {
+      for (let i = 0; i < this.count; i++) {
+        const i7 = i * 7;
+        const i3 = i * 3;
+
+        // Position
+        this.particles[i7] = Math.random() * this.width;
+        this.particles[i7 + 1] = Math.random() * this.height;
+
+        // Size
+        this.particles[i7 + 2] = Math.random() * (config.maxSize - config.minSize) + config.minSize + 2.0;
+
+        // Color
+        const color = this.hexToRgb(config.colors[Math.floor(Math.random() * config.colors.length)]);
+        this.particles[i7 + 3] = color[0];
+        this.particles[i7 + 4] = color[1];
+        this.particles[i7 + 5] = color[2];
+
+        // Store random movement and opacity values
+        this.particleData[i3] = config.speed * (0.5 + Math.random()); // Random Y speed
+        this.particleData[i3 + 1] = config.speed * (-0.5 - Math.random() * 0.5); // Random X speed
+        this.particleData[i3 + 2] = config.opacity * (0.5 + Math.random() * 1.5); // Random base opacity
+
+        // Initial opacity
+        this.particles[i7 + 6] = this.particleData[i3 + 2];
+      }
+    }
+
+    update() {
+      for (let i = 0; i < this.count; i++) {
+        const i7 = i * 7;
+        const i3 = i * 3;
+
+        // Update position using particle-specific speeds
+        this.particles[i7 + 1] -= this.particleData[i3]; // Move up with random speed
+        this.particles[i7] += this.particleData[i3 + 1]; // Move left with random speed
+
+        // Reset if out of bounds
+        if (this.particles[i7 + 1] < -this.config.maxSize) {
+          this.particles[i7] = Math.random() * this.width;
+          this.particles[i7 + 1] = this.height + this.config.maxSize;
+        }
+        if (this.particles[i7] < -this.config.maxSize) {
+          this.particles[i7] = this.width + this.config.maxSize;
+        }
+
+        // Update opacity with a slight oscillation
+        const time = performance.now() * 0.001;
+        const oscillation = Math.sin(time + i) * 0.2 + 0.8;
+        this.particles[i7 + 6] = this.particleData[i3 + 2] * oscillation;
+      }
+
+      // Update buffer
+      this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.particleBuffer);
+      this.gl.bufferSubData(this.gl.ARRAY_BUFFER, 0, this.particles);
+    }
+
+    render() {
+      this.gl.useProgram(this.program);
+
+      // Clear with a very slight background tint to help see if rendering is working
+      this.gl.clearColor(0, 0, 0, 0.01);
+      this.gl.clear(this.gl.COLOR_BUFFER_BIT);
+
+      // Enable blending
+      this.gl.enable(this.gl.BLEND);
+      this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE);
+
+      // Draw particles
+      this.gl.drawArrays(this.gl.POINTS, 0, this.count);
+
+      // Debug output for first frame
+      if (!this.hasLoggedDebug) {
+        this.hasLoggedDebug = true;
+      }
+    }
+
+    resize(width: number, height: number) {
+      this.width = width;
+      this.height = height;
+      this.gl.viewport(0, 0, width, height);
+
+      // Make sure program is active before setting uniform
+      this.gl.useProgram(this.program);
+      const resolutionLoc = this.gl.getUniformLocation(this.program, 'resolution');
+      this.gl.uniform2f(resolutionLoc, width, height);
+    }
+  }
+
+  let particles: WebGLParticles | null = null;
+
+  const canvas = document.getElementById('particleCanvas') as HTMLCanvasElement;
+  const config = {
+    count: Number(canvas.dataset.count),
+    minSize: Number(canvas.dataset.minSize),
+    maxSize: Number(canvas.dataset.maxSize),
+    colors: JSON.parse(canvas.dataset.colors!),
+    opacity: Number(canvas.dataset.opacity),
+    speed: Number(canvas.dataset.speed),
+    blur: Number(canvas.dataset.blur),
+  };
+
+  // Set canvas size
+  const resizeCanvas = () => {
+    const pixelRatio = window.devicePixelRatio || 1;
+    canvas.width = window.innerWidth * pixelRatio;
+    canvas.height = window.innerHeight * pixelRatio;
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+    if (particles) {
+      particles.resize(canvas.width, canvas.height);
+    }
+  };
+
+  // Initialize everything in the correct order
+  const init = () => {
+    resizeCanvas();
+    try {
+      particles = new WebGLParticles(canvas, config);
+      animate();
+    } catch (error) {
+      console.error('WebGL initialization failed:', error);
+    }
+  };
+
+  // Animation loop
+  const animate = () => {
+    if (particles) {
+      particles.update();
+      particles.render();
+    }
+    requestAnimationFrame(animate);
+  };
+
+  window.addEventListener('resize', resizeCanvas);
+  init();
+</script>
+
+<style>
+  canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+    filter: invert(1);
+    mix-blend-mode: color-dodge;
+  }
+</style>
