@@ -1,11 +1,24 @@
 ---
 import { ArticleList } from '../components/business/ArticleList';
 import Page from '../components/layout/Page.astro';
-import { getPaginatedArticles } from '../mock/articles';
+import { getCollection } from 'astro:content';
 
-const { articles, hasMore, total } = await getPaginatedArticles(1);
+const ITEMS_PER_PAGE = 10;
+const articles = await getCollection('article');
+const sortedArticles = articles.sort((a, b) => b.data.createdDate.getTime() - a.data.createdDate.getTime());
+const initialArticles = sortedArticles.slice(0, ITEMS_PER_PAGE).map(article => ({
+  id: article.id,
+  title: article.data.title,
+  summary: article.data.description,
+  createdAt: article.data.createdDate,
+  updatedAt: article.data.updatedDate || article.data.createdDate,
+  slug: article.slug
+}));
+
+const hasMore = articles.length > ITEMS_PER_PAGE;
+const total = articles.length;
 ---
 
 <Page>
-	<ArticleList client:load initialArticles={articles} initialHasMore={hasMore} total={total} />
+	<ArticleList client:load initialArticles={initialArticles} initialHasMore={hasMore} total={total} />
 </Page>

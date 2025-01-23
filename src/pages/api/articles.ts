@@ -1,13 +1,34 @@
 import type { APIRoute } from 'astro';
-import { getPaginatedArticles } from '../../mock/articles';
+import { getCollection } from 'astro:content';
 
-export const GET: APIRoute = async ({ url }) => {
+const ITEMS_PER_PAGE = 10;
+
+export const GET: APIRoute = async ({ request }) => {
+  const url = new URL(request.url);
+  console.log(request.url);
   const page = Number(url.searchParams.get('page')) || 1;
-  const data = await getPaginatedArticles(page);
-  
-  return new Response(JSON.stringify(data), {
+  const articles = await getCollection('article');
+  const sortedArticles = articles.sort((a, b) => b.data.createdDate.getTime() - a.data.createdDate.getTime());
+
+  const start = (page - 1) * ITEMS_PER_PAGE;
+  const end = Math.min(start + ITEMS_PER_PAGE, sortedArticles.length);
+
+  console.log(page, start, sortedArticles.length, end);
+  const paginatedArticles = sortedArticles.slice(start, end).map(article => ({
+    title: article.data.title,
+    summary: article.data.description,
+    createdAt: article.data.createdDate.toISOString(),
+    updatedAt: (article.data.updatedDate || article.data.createdDate).toISOString(),
+    slug: article.slug
+  }));
+
+  return new Response(JSON.stringify({
+    articles: paginatedArticles,
+    hasMore: sortedArticles.length > end,
+    total: articles.length
+  }), {
     headers: {
       'Content-Type': 'application/json'
     }
   });
-}; 
+};

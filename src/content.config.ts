@@ -10,6 +10,7 @@ const article = defineCollection({
 		description: z.string(),
 		createdDate: z.coerce.date(),
 		updatedDate: z.coerce.date().optional(),
+		slug: z.string().optional(),
 	}),
 });
 
