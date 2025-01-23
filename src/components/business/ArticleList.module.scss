@@ -14,4 +14,28 @@
   padding: 20px;
   color: rgba(255, 255, 255, 0.7);
   font-size: 0.875rem;
-} 
+}
+
+.emptyState {
+  position: relative;
+  background: linear-gradient(142deg, rgba(42, 42, 44, 0.8) 0%, rgba(42, 42, 44, 0.25) 100%);
+  backdrop-filter: blur(1.5rem);
+  border-radius: 2rem;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+
+  p {
+    margin: 0.5rem 0;
+
+    &:first-child {
+      font-size: 1.25rem;
+      font-weight: 500;
+      color: var(--text-80);
+    }
+
+    &:last-child {
+      color: var(--text-60);
+    }
+  }
+}

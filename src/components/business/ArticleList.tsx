@@ -83,16 +83,23 @@ export const ArticleList = ({ initialArticles, initialHasMore, total }: Props) =
   return (
     <div class={styles.articleList} data-total={total}>
       <div class={styles.articleContainer}>
-        {articles.map((article) => (
-          <ArticleBlock
-            key={article.id}
-            title={article.title}
-            summary={article.summary}
-            createdAt={article.createdAt}
-            updatedAt={article.updatedAt}
-            slug={article.slug}
-          />
-        ))}
+        {articles.length > 0 ? (
+          articles.map((article) => (
+            <ArticleBlock
+              key={article.id}
+              title={article.title}
+              summary={article.summary}
+              createdAt={article.createdAt}
+              updatedAt={article.updatedAt}
+              slug={article.slug}
+            />
+          ))
+        ) : (
+          <div class={styles.emptyState}>
+            <p>No articles found</p>
+            <p>Check back later for new content</p>
+          </div>
+        )}
       </div>
       {hasMore && (
         <div ref={loadingRef} class={styles.loadingIndicator}>
@@ -101,4 +108,4 @@ export const ArticleList = ({ initialArticles, initialHasMore, total }: Props) =
       )}
     </div>
   );
-}; 
+};
