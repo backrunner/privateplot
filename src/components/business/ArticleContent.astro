@@ -25,12 +25,6 @@ const { title, description, createdDate, updatedDate } = Astro.props;
       )}
     </div>
 
-    {description && (
-      <blockquote class="description">
-        {description}
-      </blockquote>
-    )}
-
     <div class="content">
       <slot />
     </div>
@@ -40,7 +34,7 @@ const { title, description, createdDate, updatedDate } = Astro.props;
 <style lang="scss">
   .article-content {
 		width: 100%;
-    margin: 0.875em auto;
+    margin: 1.25em auto;
     padding: 0.875rem 1.75rem;
 		box-sizing: border-box;
 		border-radius: 2rem;

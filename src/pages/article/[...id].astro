@@ -1,0 +1,31 @@
+---
+import { getEntry } from 'astro:content';
+import Page from '../../components/layout/Page.astro';
+import ArticleContent from '../../components/business/ArticleContent.astro';
+import { render } from 'astro:content';
+
+// Get the article id from URL params
+const { id } = Astro.params;
+
+// Handle 404 if id is not provided
+if (!id) {
+	return Astro.redirect('/404');
+}
+
+// Get the article entry
+const post = await getEntry('article', id);
+
+// Handle 404 if article not found
+if (!post) {
+	return Astro.redirect('/404');
+}
+
+const { Content } = await render(post);
+---
+
+<Page>
+	<ArticleContent {...post.data}>
+		<Content />
+	</ArticleContent>
+</Page>
+

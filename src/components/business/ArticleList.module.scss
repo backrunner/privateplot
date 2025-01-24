@@ -1,17 +1,17 @@
 .articleList {
   width: 100%;
-  margin: 24px auto 0 auto;
+  margin: 1.25rem auto 0 auto;
 }
 
 .articleContainer {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 1.5rem;
 }
 
 .loadingIndicator {
   text-align: center;
-  padding: 20px;
+  padding: 1.5rem;
   color: rgba(255, 255, 255, 0.7);
   font-size: 0.875rem;
 }

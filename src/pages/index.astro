@@ -12,7 +12,7 @@ const initialArticles = sortedArticles.slice(0, ITEMS_PER_PAGE).map(article => (
   summary: article.data.description,
   createdAt: article.data.createdDate,
   updatedAt: article.data.updatedDate || article.data.createdDate,
-  slug: article.slug
+  slug: article.id,
 }));
 
 const hasMore = articles.length > ITEMS_PER_PAGE;
