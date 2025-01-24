@@ -25,3 +25,10 @@ pnpm-debug.log*
 .idea/
 
 src/content/
+
+# wrangler
+wrangler.toml
+.wrangler/
+
+# db
+migrations/

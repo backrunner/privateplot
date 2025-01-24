@@ -1,8 +1,9 @@
 ---
-import { getEntry } from 'astro:content';
+import MarkdownIt from 'markdown-it';
+import shikiPlugin from '@shikijs/markdown-it';
 import Page from '../../components/layout/Page.astro';
 import ArticleContent from '../../components/business/ArticleContent.astro';
-import { render } from 'astro:content';
+import { ArticleService } from '../../services/ArticleService';
 
 // Get the article id from URL params
 const { id } = Astro.params;
@@ -12,20 +13,57 @@ if (!id) {
 	return Astro.redirect('/404');
 }
 
-// Get the article entry
-const post = await getEntry('article', id);
+// Get the article from database
+const articleService = new ArticleService(Astro.locals.runtime.env.DB);
+const article = await articleService.getBySlug(id);
 
 // Handle 404 if article not found
-if (!post) {
+if (!article) {
 	return Astro.redirect('/404');
 }
 
-const { Content } = await render(post);
+// Setup markdown renderer
+const md = MarkdownIt({
+	html: true,
+	linkify: true,
+	typographer: true
+});
+
+// Add shiki syntax highlighting
+await md.use(await shikiPlugin({
+	themes: {
+		light: 'github-light',
+		dark: 'github-dark'
+	}
+}));
+
+// Render markdown content
+const content = md.render(article.content);
 ---
 
 <Page>
-	<ArticleContent {...post.data}>
-		<Content />
+	<ArticleContent
+		title={article.title}
+		createdDate={article.createdDate}
+		updatedDate={article.updatedDate}
+	>
+		<div class="markdown-content" set:html={content} />
 	</ArticleContent>
 </Page>
+
+<style is:global>
+	.markdown-content {
+		@apply prose prose-invert max-w-none;
+	}
+	.markdown-content pre {
+		@apply p-4 rounded-lg;
+		background-color: #0d1117;
+	}
+	.markdown-content code {
+		@apply text-sm;
+	}
+	.markdown-content :not(pre) > code {
+		@apply px-1.5 py-0.5 rounded-md bg-gray-800;
+	}
+</style>
 

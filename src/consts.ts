@@ -3,6 +3,7 @@
 
 export const SITE_TITLE = 'BackRunner\'s Plot';
 export const SITE_DESCRIPTION = 'Turn ideas into codes and bring them to reality';
-export const SITE_KEYWORDS = 'BackRunner, Tech Blogs, Frontend Development'
+export const SITE_KEYWORDS = 'BackRunner, Tech Blogs, Frontend Development';
+export const SITE_URL = 'https://backrunner.blog';
 export const ENABLE_COPYRIGHT = true;
 export const ENABLE_POWERED_BY = true;

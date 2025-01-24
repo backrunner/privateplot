@@ -1,8 +1,5 @@
 ---
-import type { CollectionEntry } from 'astro:content';
 import { formatDate } from '../../utils/date';
-
-type Props = CollectionEntry<'article'>['data'];
 
 const { title, createdDate, updatedDate } = Astro.props;
 ---

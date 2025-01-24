@@ -1,19 +1,23 @@
 ---
-import { undefined } from 'astro:schema';
 import { ArticleList } from '../components/business/ArticleList';
 import Page from '../components/layout/Page.astro';
-import { getCollection } from 'astro:content';
+import { ArticleService } from '../services/ArticleService';
 
 const ITEMS_PER_PAGE = 10;
-const articles = await getCollection('article');
-const sortedArticles = articles.sort((a, b) => b.data.createdDate.getTime() - a.data.createdDate.getTime());
+const articleService = new ArticleService(Astro.locals.runtime.env.DB);
+const articles = await articleService.list();
+const sortedArticles = articles.sort((a, b) =>
+  new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime()
+);
+
 const initialArticles = sortedArticles.slice(0, ITEMS_PER_PAGE).map(article => ({
   id: article.id,
-  title: article.data.title,
-  summary: article.data.summary || article.body?.slice(0, 200) + '...',
-  createdAt: article.data.createdDate,
-  updatedAt: article.data.updatedDate,
-  slug: article.id,
+  title: article.title,
+  summary: article.summary,
+  content: article.content,
+  createdDate: article.createdDate,
+  updatedDate: article.updatedDate,
+  slug: article.slug,
 }));
 
 const hasMore = articles.length > ITEMS_PER_PAGE;

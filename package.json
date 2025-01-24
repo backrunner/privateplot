@@ -8,18 +8,35 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate:local": "wrangler d1 migrations apply privateplot --local",
+    "db:migrate:prod": "wrangler d1 migrations apply privateplot --remote",
+    "db:seed": "node scripts/seed.js",
+    "generate:worker-types": "wrangler types"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^12.2.0",
-    "@astrojs/mdx": "^4.0.6",
-    "@astrojs/preact": "^4.0.2",
+    "@astrojs/cloudflare": "^12.2.1",
+    "@astrojs/db": "^0.14.6",
+    "@astrojs/mdx": "^4.0.7",
+    "@astrojs/preact": "^4.0.3",
     "@astrojs/rss": "^4.0.11",
     "@astrojs/sitemap": "^3.2.1",
-    "astro": "^5.1.7",
-    "preact": "^10.25.4"
+    "@paralleldrive/cuid2": "^2.2.2",
+    "@shikijs/markdown-it": "^2.1.0",
+    "astro": "^5.1.9",
+    "drizzle-orm": "^0.38.4",
+    "markdown-it": "^14.1.0",
+    "marked": "^15.0.6",
+    "preact": "^10.25.4",
+    "shiki": "^2.1.0"
   },
   "devDependencies": {
-    "sass": "^1.83.4"
+    "@cloudflare/workers-types": "^4.20250121.0",
+    "@types/markdown-it": "^14.1.2",
+    "drizzle-kit": "^0.30.2",
+    "gray-matter": "^4.0.3",
+    "sass": "^1.83.4",
+    "wrangler": "^3.105.0"
   }
 }

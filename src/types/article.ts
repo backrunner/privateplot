@@ -1,8 +1,3 @@
-export interface Article {
-  id: string;
-  title: string;
-  summary: string;
-  createdAt: Date;
-  updatedAt?: Date;
-  slug: string;
-}
+import type { Article as DbArticle } from '../db/schema';
+
+export type Article = DbArticle;

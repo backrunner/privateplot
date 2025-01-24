@@ -22,6 +22,14 @@ interface Props {
   total: number;
 }
 
+interface ArticleBlockProps {
+  title: string;
+  summary: string | null;
+  createdAt: Date;
+  updatedAt?: Date;
+  slug: string;
+}
+
 export const ArticleList = ({ initialArticles, initialHasMore, total }: Props) => {
   const [articles, setArticles] = useState<Article[]>(initialArticles);
   const [hasMore, setHasMore] = useState(initialHasMore);
@@ -45,9 +53,12 @@ export const ArticleList = ({ initialArticles, initialHasMore, total }: Props) =
           ...prev,
           ...data.articles.map(article => ({
             id: `article-${currentPage * 10 + prev.length + 1}`,
-            ...article,
-            createdAt: new Date(article.createdAt),
-            updatedAt: new Date(article.updatedAt),
+            title: article.title,
+            summary: article.summary || '',
+            content: '', // API doesn't return content for list view
+            createdDate: new Date(article.createdAt),
+            updatedDate: new Date(article.updatedAt),
+            slug: article.slug,
           }))
         ]);
         setHasMore(data.hasMore);
@@ -90,8 +101,8 @@ export const ArticleList = ({ initialArticles, initialHasMore, total }: Props) =
               key={article.id}
               title={article.title}
               summary={article.summary}
-              createdAt={article.createdAt}
-              updatedAt={article.updatedAt}
+              createdAt={article.createdDate}
+              updatedAt={article.updatedDate || undefined}
               slug={article.slug}
             />
           ))
