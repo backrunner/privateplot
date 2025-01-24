@@ -54,7 +54,7 @@ const halfTopWidth = topWidth / 2;
 const halfBottomWidth = bottomWidth / 2;
 ---
 
-<div class="spotlight-container">
+<div class="spotlight-container" transition:persist>
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="100%"
@@ -85,7 +85,7 @@ const halfBottomWidth = bottomWidth / 2;
       `}
       fill="url(#spotlight-gradient)"
       filter="url(#spotlight-blur)"
-      opacity={opacity}
+      opacity="0"
     >
       <animate
         attributeName="d"
@@ -107,6 +107,15 @@ const halfBottomWidth = bottomWidth / 2;
           Z
         `}
       />
+      <animate
+        attributeName="opacity"
+        dur="1.2s"
+        begin="0s"
+        fill="freeze"
+        calcMode="spline"
+        keySplines="0.4 0 0.2 1"
+        values=`0;${opacity}`
+      />
     </path>
   </svg>
 </div>
@@ -124,23 +133,9 @@ const halfBottomWidth = bottomWidth / 2;
     filter: blur(4px);
   }
 
-  .spotlight-beam {
-    animation: spotlight-fade 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-  }
-
-  @keyframes spotlight-fade {
-    0% {
-      opacity: 0;
-    }
-    100% {
-      opacity: 0.6;
-    }
-  }
-
   @media (prefers-reduced-motion: reduce) {
     .spotlight-beam {
-      animation: none;
-      opacity: 1;
+      opacity: var(--opacity) !important;
     }
   }
 </style>

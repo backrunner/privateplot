@@ -12,8 +12,7 @@ interface Props {
 const { count = 200, minSize = 0.1, maxSize = 1, colors = ['#ffecd1', '#fafafa', '#dadada'], opacity = 0.06, speed = 0.1, blur = 3.0 } = Astro.props;
 ---
 
-<canvas id="particleCanvas" data-count={count} data-min-size={minSize} data-max-size={maxSize} data-opacity={opacity} data-speed={speed} data-blur={blur} data-colors={JSON.stringify(colors)}></canvas>
-
+<canvas transition:persist id="particleCanvas" data-count={count} data-min-size={minSize} data-max-size={maxSize} data-opacity={opacity} data-speed={speed} data-blur={blur} data-colors={JSON.stringify(colors)}></canvas>
 <script>
   const vertexShaderSource = `
     attribute vec2 position;
