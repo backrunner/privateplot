@@ -1,4 +1,5 @@
 ---
+import { undefined } from 'astro:schema';
 import { ArticleList } from '../components/business/ArticleList';
 import Page from '../components/layout/Page.astro';
 import { getCollection } from 'astro:content';
@@ -9,9 +10,9 @@ const sortedArticles = articles.sort((a, b) => b.data.createdDate.getTime() - a.
 const initialArticles = sortedArticles.slice(0, ITEMS_PER_PAGE).map(article => ({
   id: article.id,
   title: article.data.title,
-  summary: article.data.description,
+  summary: article.data.summary || article.body?.slice(0, 200) + '...',
   createdAt: article.data.createdDate,
-  updatedAt: article.data.updatedDate || article.data.createdDate,
+  updatedAt: article.data.updatedDate,
   slug: article.id,
 }));
 

@@ -5,7 +5,7 @@ interface Props {
   title: string;
   summary: string;
   createdAt: Date;
-  updatedAt: Date;
+  updatedAt: Date | undefined;
   slug: string;
 }
 
@@ -27,7 +27,7 @@ export const ArticleBlock = ({ title, summary, createdAt, updatedAt, slug }: Pro
         </a>
       </div>
       <div class={styles['article-block__time-info']}>
-        <span class={styles['article-block__time-tag']}>Updated: {formatDate(updatedAt)}</span>
+        {updatedAt && <span class={styles['article-block__time-tag']}>Updated: {formatDate(updatedAt)}</span>}
         <span class={styles['article-block__time-tag']}>Created: {formatDate(createdAt)}</span>
       </div>
       <div class={styles['article-block__content']}>

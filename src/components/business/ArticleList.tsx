@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
+import type { Article } from '../../types/article';
+
 import { ArticleBlock } from './ArticleBlock';
-import type { Article } from '../../mock/articles';
 import styles from './ArticleList.module.scss';
 
 interface ArticleResponse {
