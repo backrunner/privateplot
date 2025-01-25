@@ -1,24 +1,24 @@
-.articleList {
+.article-list {
   width: 100%;
   margin: 1.25rem auto 0 auto;
 }
 
-.articleContainer {
+.article-list__container {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
-.loadingIndicator {
+.article-list__loading {
   text-align: center;
   padding: 1.5rem;
   color: rgba(255, 255, 255, 0.7);
   font-size: 0.875rem;
 }
 
-.emptyState {
+.article-list__empty {
   position: relative;
-  background: linear-gradient(142deg, rgba(42, 42, 44, 0.8) 0%, rgba(42, 42, 44, 0.25) 100%);
+  background: var(--block-bg);
   backdrop-filter: blur(1.5rem);
   border-radius: 2rem;
   padding: 1.5rem;

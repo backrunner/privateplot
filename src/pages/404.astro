@@ -1,0 +1,38 @@
+---
+import Page from "../components/layout/Page.astro";
+---
+
+<Page>
+  <div class="not-found">
+    <p>404 - Page not found</p>
+    <p>The page you're looking for doesn't exist</p>
+  </div>
+</Page>
+
+<style>
+  .not-found {
+    position: relative;
+    background: var(--block-bg);
+    backdrop-filter: blur(1.5rem);
+    border-radius: 2rem;
+    padding: 1.5rem;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+    text-align: left;
+    margin: 2rem auto;
+  }
+
+  .not-found p {
+    margin: 0.5rem 0;
+  }
+
+  .not-found p:first-child {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--text-80);
+  }
+
+  .not-found p:nth-child(2) {
+    color: var(--text-60);
+  }
+</style>

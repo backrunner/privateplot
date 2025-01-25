@@ -1,6 +1,6 @@
 .article-block {
   position: relative;
-  background: linear-gradient(142deg, rgba(42, 42, 44, 0.8) 0%,rgba(42, 42, 44, 0.25) 100%);
+  background: var(--block-bg);
   backdrop-filter: blur(1.5rem);
   border-radius: 2rem;
   padding: 1.5rem;
