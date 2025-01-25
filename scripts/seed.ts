@@ -1,11 +1,21 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import matter from 'gray-matter';
 import { fileURLToPath } from 'node:url';
+import dotenv from 'dotenv';
+import matter from 'gray-matter';
+import { generateSlug, extractSummary } from '../src/utils/article.ts';
+
+// Load environment variables
+dotenv.config();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ARTICLES_DIR = path.join(__dirname, '../src/content/articles');
 const API_URL = 'http://localhost:4321/api/internal/article';
+
+if (!process.env.INTERNAL_AUTH_TOKEN) {
+  console.error('INTERNAL_AUTH_TOKEN is not set in environment variables');
+  process.exit(1);
+}
 
 async function getAllArticles() {
   const files = await fs.readdir(ARTICLES_DIR);
@@ -15,11 +25,13 @@ async function getAllArticles() {
       .map(async (file) => {
         const content = await fs.readFile(path.join(ARTICLES_DIR, file), 'utf-8');
         const { data: frontmatter, content: articleContent } = matter(content);
+        const title = frontmatter.title;
 
         return {
-          title: frontmatter.title,
+          title,
           content: articleContent,
-          summary: frontmatter.summary || ''
+          slug: generateSlug(title),
+          summary: frontmatter.summary || extractSummary(articleContent)
         };
       })
   );
@@ -35,13 +47,14 @@ async function seedDatabase() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-        },
+          'X-Internal-Auth-Token': process.env.INTERNAL_AUTH_TOKEN!
+        } as HeadersInit,
         body: JSON.stringify(article),
       });
 
       if (!response.ok) {
         const error = await response.json();
-        console.error(`Failed to seed article ${article.slug}:`, error);
+        console.error(`Failed to seed article ${article.title}:`, error);
         continue;
       }
 

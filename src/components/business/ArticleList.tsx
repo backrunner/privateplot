@@ -4,6 +4,8 @@ import type { Article } from '../../types/article';
 import { ArticleBlock } from './ArticleBlock';
 import styles from './ArticleList.module.scss';
 
+type ListArticle = Omit<Article, 'content' | 'rendered'>;
+
 interface ArticleResponse {
   articles: Array<{
     title: string;
@@ -17,21 +19,13 @@ interface ArticleResponse {
 }
 
 interface Props {
-  initialArticles: Article[];
+  initialArticles: ListArticle[];
   initialHasMore: boolean;
   total: number;
 }
 
-interface ArticleBlockProps {
-  title: string;
-  summary: string | null;
-  createdAt: Date;
-  updatedAt?: Date;
-  slug: string;
-}
-
 export const ArticleList = ({ initialArticles, initialHasMore, total }: Props) => {
-  const [articles, setArticles] = useState<Article[]>(initialArticles);
+  const [articles, setArticles] = useState<ListArticle[]>(initialArticles);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -55,7 +49,6 @@ export const ArticleList = ({ initialArticles, initialHasMore, total }: Props) =
             id: `article-${currentPage * 10 + prev.length + 1}`,
             title: article.title,
             summary: article.summary || '',
-            content: '', // API doesn't return content for list view
             createdDate: new Date(article.createdAt),
             updatedDate: new Date(article.updatedAt),
             slug: article.slug,

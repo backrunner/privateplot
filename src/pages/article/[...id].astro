@@ -1,6 +1,4 @@
 ---
-import MarkdownIt from 'markdown-it';
-import shikiPlugin from '@shikijs/markdown-it';
 import Page from '../../components/layout/Page.astro';
 import ArticleContent from '../../components/business/ArticleContent.astro';
 import { ArticleService } from '../../services/ArticleService';
@@ -21,24 +19,6 @@ const article = await articleService.getBySlug(id);
 if (!article) {
 	return Astro.redirect('/404');
 }
-
-// Setup markdown renderer
-const md = MarkdownIt({
-	html: true,
-	linkify: true,
-	typographer: true
-});
-
-// Add shiki syntax highlighting
-await md.use(await shikiPlugin({
-	themes: {
-		light: 'github-light',
-		dark: 'github-dark'
-	}
-}));
-
-// Render markdown content
-const content = md.render(article.content);
 ---
 
 <Page>
@@ -47,7 +27,7 @@ const content = md.render(article.content);
 		createdDate={article.createdDate}
 		updatedDate={article.updatedDate}
 	>
-		<div class="markdown-content" set:html={content} />
+		<div class="markdown-content" set:html={article.rendered} />
 	</ArticleContent>
 </Page>
 

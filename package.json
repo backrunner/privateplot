@@ -12,12 +12,11 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate:local": "wrangler d1 migrations apply privateplot --local",
     "db:migrate:prod": "wrangler d1 migrations apply privateplot --remote",
-    "db:seed": "node scripts/seed.js",
+    "db:seed": "node --experimental-strip-types scripts/seed.ts",
     "generate:worker-types": "wrangler types"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^12.2.1",
-    "@astrojs/db": "^0.14.6",
     "@astrojs/mdx": "^4.0.7",
     "@astrojs/preact": "^4.0.3",
     "@astrojs/rss": "^4.0.11",
@@ -34,6 +33,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250121.0",
     "@types/markdown-it": "^14.1.2",
+    "dotenv": "^16.4.7",
     "drizzle-kit": "^0.30.2",
     "gray-matter": "^4.0.3",
     "sass": "^1.83.4",

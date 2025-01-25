@@ -1,4 +1,3 @@
-import { sql } from "drizzle-orm";
 import { text, integer, sqliteTable } from "drizzle-orm/sqlite-core";
 import { createId } from "@paralleldrive/cuid2";
 
@@ -8,6 +7,7 @@ export const articles = sqliteTable("articles", {
   content: text("content").notNull(),
   slug: text("slug").notNull().unique(),
   summary: text("summary").notNull(),
+  rendered: text("rendered"),
   createdDate: integer("created_date", { mode: "timestamp_ms" })
     .notNull()
     .$defaultFn(() => new Date()),
