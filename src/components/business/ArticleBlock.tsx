@@ -1,4 +1,4 @@
-import { useCallback } from 'preact/hooks';
+import { formatDate, isValidDate, areDifferentDates } from '../../utils/date';
 import styles from './ArticleBlock.module.scss';
 
 interface Props {
@@ -10,13 +10,8 @@ interface Props {
 }
 
 export const ArticleBlock = ({ title, summary, createdAt, updatedAt, slug }: Props) => {
-  const formatDate = useCallback((date: Date) => {
-    return date.toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  }, []);
+  const showCreatedDate = isValidDate(createdAt);
+  const showUpdatedDate = isValidDate(updatedAt) && areDifferentDates(createdAt, updatedAt);
 
   return (
     <article class={styles['article-block']}>
@@ -27,8 +22,16 @@ export const ArticleBlock = ({ title, summary, createdAt, updatedAt, slug }: Pro
         </a>
       </div>
       <div class={styles['article-block__time-info']}>
-        {updatedAt && <span class={styles['article-block__time-tag']}>Updated: {formatDate(updatedAt)}</span>}
-        <span class={styles['article-block__time-tag']}>Created: {formatDate(createdAt)}</span>
+        {showUpdatedDate && (
+          <span class={styles['article-block__time-tag']}>
+            Updated: {formatDate(updatedAt!)}
+          </span>
+        )}
+        {showCreatedDate && (
+          <span class={styles['article-block__time-tag']}>
+            Created: {formatDate(createdAt)}
+          </span>
+        )}
       </div>
       <div class={styles['article-block__content']}>
         <p class={styles['article-block__summary']}>{summary}</p>

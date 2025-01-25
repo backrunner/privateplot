@@ -10,7 +10,7 @@ export async function internalAuth(
   }
 
   const authToken = request.headers.get('X-Internal-Auth-Token');
-  const expectedToken = locals.runtime.env.INTERNAL_AUTH_TOKEN;
+  const expectedToken = import.meta.env.INTERNAL_AUTH_TOKEN;
 
   if (!expectedToken) {
     console.error('INTERNAL_AUTH_TOKEN is not configured');

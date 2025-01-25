@@ -1,7 +1,16 @@
 ---
-import { formatDate } from '../../utils/date';
+import { formatDate, isValidDate, areDifferentDates } from '../../utils/date';
+
+interface Props {
+  title: string;
+  createdDate: Date;
+  updatedDate?: Date;
+}
 
 const { title, createdDate, updatedDate } = Astro.props;
+
+const showCreatedDate = isValidDate(createdDate);
+const showUpdatedDate = isValidDate(updatedDate) && areDifferentDates(createdDate, updatedDate);
 ---
 
 <article class="article-content">
@@ -12,10 +21,12 @@ const { title, createdDate, updatedDate } = Astro.props;
     </div>
 
     <div class="meta">
-      <span class="date-capsule">
-        Created: {formatDate(createdDate)}
-      </span>
-      {updatedDate && (
+      {showCreatedDate && (
+        <span class="date-capsule">
+          Created: {formatDate(createdDate)}
+        </span>
+      )}
+      {showUpdatedDate && updatedDate && (
         <span class="date-capsule">
           Updated: {formatDate(updatedDate)}
         </span>
