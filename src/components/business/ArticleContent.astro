@@ -16,21 +16,13 @@ const showUpdatedDate = isValidDate(updatedDate) && areDifferentDates(createdDat
 <article class="article-content">
   <div class="prose">
     <div class="title-container">
-      <div class="title-border" />
+      <div class="title-border"></div>
       <h1 class="title">{title}</h1>
     </div>
 
     <div class="meta">
-      {showCreatedDate && (
-        <span class="date-capsule">
-          Created: {formatDate(createdDate)}
-        </span>
-      )}
-      {showUpdatedDate && updatedDate && (
-        <span class="date-capsule">
-          Updated: {formatDate(updatedDate)}
-        </span>
-      )}
+      {showCreatedDate && <span class="date-capsule">Created: {formatDate(createdDate)}</span>}
+      {showUpdatedDate && updatedDate && <span class="date-capsule">Updated: {formatDate(updatedDate)}</span>}
     </div>
 
     <div class="content">
@@ -41,13 +33,13 @@ const showUpdatedDate = isValidDate(updatedDate) && areDifferentDates(createdDat
 
 <style lang="scss">
   .article-content {
-		width: 100%;
+    width: 100%;
     margin: 1.25em auto;
     padding: 0.875rem 1.75rem;
-		box-sizing: border-box;
-		border-radius: 2rem;
-		background: linear-gradient(142deg, rgba(42, 42, 44, 0.8) 0%,rgba(42, 42, 44, 0.25) 100%);
-		backdrop-filter: blur(1.5rem);
+    box-sizing: border-box;
+    border-radius: 2rem;
+    background: linear-gradient(142deg, rgba(42, 42, 44, 0.8) 0%, rgba(42, 42, 44, 0.25) 100%);
+    backdrop-filter: blur(1.5rem);
 
     .title-container {
       position: relative;
@@ -137,9 +129,88 @@ const showUpdatedDate = isValidDate(updatedDate) && areDifferentDates(createdDat
 
       :global(pre) {
         margin: 1.25rem 0;
-        padding: 0.75rem;
+        padding: 1rem;
         border-radius: 0.5rem;
-        background: rgba(0, 0, 0, 0.3);
+        background-color: #0d1117;
+        overflow-x: auto;
+      }
+
+      :global(code) {
+        font-size: 0.875rem;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      }
+
+      :global(:not(pre) > code) {
+        padding: 0.2rem 0.4rem;
+        border-radius: 0.375rem;
+        background-color: rgba(0, 0, 0, 0.3);
+      }
+
+      :global(blockquote) {
+        margin: 1.5rem 0;
+        padding: 1rem 1.5rem;
+        border-left: 4px solid rgba(255, 255, 255, 0.2);
+        background-color: rgba(255, 255, 255, 0.05);
+        border-radius: 0.5rem;
+        font-style: italic;
+
+        :global(p) {
+          margin: 0;
+        }
+      }
+
+      :global(ul), :global(ol) {
+        margin: 1rem 0;
+        padding-left: 1.5rem;
+
+        :global(li) {
+          margin: 0.5rem 0;
+          padding-left: 0.5rem;
+
+          &::marker {
+            color: rgba(255, 255, 255, 0.6);
+          }
+        }
+
+        :global(ul), :global(ol) {
+          margin: 0.5rem 0;
+        }
+      }
+
+      :global(img) {
+        max-width: 100%;
+        height: auto;
+        margin: 1.5rem auto;
+        border-radius: 0.5rem;
+        display: block;
+        filter: brightness(0.92);
+      }
+
+      :global(hr) {
+        margin: 2rem 0;
+        border: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      :global(table) {
+        width: 100%;
+        margin: 1.5rem 0;
+        border-collapse: collapse;
+
+        :global(th), :global(td) {
+          padding: 0.75rem;
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          text-align: left;
+        }
+
+        :global(th) {
+          background-color: rgba(255, 255, 255, 0.1);
+          font-weight: 600;
+        }
+
+        :global(tr:nth-child(even)) {
+          background-color: rgba(255, 255, 255, 0.03);
+        }
       }
     }
   }
