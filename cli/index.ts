@@ -33,9 +33,15 @@ const CONFIG_FILE = join(homedir(), '.privateplot.yaml');
 async function loadSettings(): Promise<Settings> {
   try {
     const content = await readFile(CONFIG_FILE, 'utf-8');
-    return load(content) as Settings;
+    const fileSettings = load(content) as Settings;
+    return {
+      ...fileSettings,
+      instanceHost: process.env.PRIVATEPLOT_HOST || fileSettings.instanceHost,
+    };
   } catch {
-    return {};
+    return {
+      instanceHost: process.env.PRIVATEPLOT_HOST,
+    };
   }
 }
 
@@ -74,7 +80,7 @@ async function publishArticle(filePath: string, settings: Settings) {
   }
 
   if (!settings.instanceHost) {
-    console.error('No instance host configured. Please set it using `privateplot settings --host <host>`');
+    console.error('No instance host configured. Please set it using `privateplot settings --host <host>` or PRIVATEPLOT_HOST environment variable');
     process.exit(1);
   }
 
