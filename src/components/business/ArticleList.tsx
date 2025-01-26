@@ -13,6 +13,7 @@ interface ArticleResponse {
     createdAt: string;
     updatedAt: string;
     slug: string;
+    meta: Record<string, any> | null;
   }>;
   hasMore: boolean;
   total: number;
@@ -52,6 +53,7 @@ export const ArticleList = ({ initialArticles, initialHasMore, total }: Props) =
             createdDate: new Date(article.createdAt),
             updatedDate: new Date(article.updatedAt),
             slug: article.slug,
+            meta: article.meta,
           }))
         ]);
         setHasMore(data.hasMore);
@@ -97,6 +99,7 @@ export const ArticleList = ({ initialArticles, initialHasMore, total }: Props) =
               createdAt={article.createdDate}
               updatedAt={article.updatedDate || undefined}
               slug={article.slug}
+              meta={article.meta}
             />
           ))
         ) : (

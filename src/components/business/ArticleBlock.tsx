@@ -7,6 +7,7 @@ interface Props {
   createdAt: Date;
   updatedAt: Date | undefined;
   slug: string;
+  meta: Record<string, any> | null;
 }
 
 export const ArticleBlock = ({ title, summary, createdAt, updatedAt, slug }: Props) => {

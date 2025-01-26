@@ -38,6 +38,14 @@ const description = article.content
   .replace(/[#*`]/g, '') // Remove markdown syntax
   .slice(0, 160)
   .trim() + '...';
+
+// Process keywords from meta
+const keywords = article.meta?.keywords;
+const processedKeywords = Array.isArray(keywords) 
+  ? keywords.join(', ')
+  : typeof keywords === 'string'
+    ? keywords
+    : undefined;
 ---
 
 <Page>
@@ -54,6 +62,12 @@ const description = article.content
 		{article.updatedDate && (
 			<meta property="article:modified_time" content={article.updatedDate.toISOString()} />
 		)}
+		{processedKeywords && (
+			<>
+				<meta name="keywords" content={processedKeywords} />
+				<meta property="article:tag" content={processedKeywords} />
+			</>
+		)}
 		<meta name="twitter:card" content="summary_large_image" />
 		<meta name="twitter:title" content={`${article.title} - ${SITE_TITLE}`} />
 		<meta name="twitter:description" content={description} />
@@ -64,6 +78,7 @@ const description = article.content
 		title={article.title}
 		createdDate={article.createdDate}
 		updatedDate={article.updatedDate}
+		meta={article.meta}
 	>
 		<div class="markdown-content" set:html={article.rendered} />
 	</ArticleContent>

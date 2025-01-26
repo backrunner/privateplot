@@ -1,4 +1,5 @@
 import { eq } from 'drizzle-orm';
+import { load } from 'js-yaml';
 import type { D1Database } from '@cloudflare/workers-types';
 import { getDb } from '../db';
 import { articles } from '../db/schema';
@@ -36,6 +37,37 @@ export class ArticleService {
       .where(eq(articles.id, article.id));
 
     return renderedArticle;
+  }
+
+  private extractMetaFromContent(content: string): { meta: Record<string, any> | null, content: string } {
+    const frontMatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
+    let meta: Record<string, any> | null = null;
+    let cleanContent = content;
+
+    if (frontMatterMatch) {
+      try {
+        const frontMatter = load(frontMatterMatch[1]) as Record<string, any>;
+        // Filter out privateplot- prefixed keys and store the rest in meta
+        const filteredMeta = Object.entries(frontMatter).reduce((acc, [key, value]) => {
+          if (!key.startsWith('privateplot-')) {
+            acc[key] = value;
+          }
+          return acc;
+        }, {} as Record<string, any>);
+
+        // Only set meta if there are any non-privateplot keys
+        if (Object.keys(filteredMeta).length > 0) {
+          meta = filteredMeta;
+        }
+
+        // Remove the frontmatter from content
+        cleanContent = content.slice(frontMatterMatch[0].length).trim();
+      } catch (e) {
+        console.error('Error parsing frontmatter:', e);
+      }
+    }
+
+    return { meta, content: cleanContent };
   }
 
   /**
@@ -80,17 +112,21 @@ export class ArticleService {
   /**
    * Create a new article
    */
-  async create(article: Omit<Article, 'id' | 'createdDate' | 'updatedDate' | 'slug' | 'summary' | 'rendered'> & {
+  async create(article: Omit<Article, 'id' | 'createdDate' | 'updatedDate' | 'slug' | 'summary' | 'rendered' | 'meta'> & {
     summary?: string | null | undefined;
     slug?: string;
   }): Promise<Article> {
     await this.markdownRenderer.initialize();
 
+    const { meta, content } = this.extractMetaFromContent(article.content);
+
     const newArticle = {
       ...article,
+      content,
       slug: article.slug || generateSlug(article.title),
-      summary: article.summary ?? extractSummary(article.content),
-      rendered: this.markdownRenderer.render(article.content),
+      summary: article.summary ?? extractSummary(content),
+      rendered: this.markdownRenderer.render(content),
+      meta: meta as Record<string, any> | null,
     };
 
     const results = await this.db.insert(articles).values(newArticle).returning();
@@ -102,7 +138,7 @@ export class ArticleService {
   /**
    * Update an existing article
    */
-  async update(id: string, article: Partial<Omit<Article, 'id' | 'createdDate' | 'slug' | 'summary' | 'updatedDate' | 'rendered'>> & {
+  async update(id: string, article: Partial<Omit<Article, 'id' | 'createdDate' | 'slug' | 'summary' | 'updatedDate' | 'rendered' | 'meta'>> & {
     summary?: string | null;
   }): Promise<Article | undefined> {
     await this.markdownRenderer.initialize();
@@ -112,14 +148,16 @@ export class ArticleService {
       updatedDate: new Date(),
     };
 
-    // Generate new summary if content is updated and summary is not provided
-    if (article.content && article.summary === undefined) {
-      updateData.summary = extractSummary(article.content);
-    }
-
-    // Re-render content if it's updated
     if (article.content) {
-      updateData.rendered = this.markdownRenderer.render(article.content);
+      const { meta, content } = this.extractMetaFromContent(article.content);
+      updateData.content = content;
+      updateData.meta = meta as Record<string, any> | null;
+      updateData.rendered = this.markdownRenderer.render(content);
+
+      // Generate new summary if content is updated and summary is not provided
+      if (article.summary === undefined) {
+        updateData.summary = extractSummary(content);
+      }
     }
 
     const results = await this.db

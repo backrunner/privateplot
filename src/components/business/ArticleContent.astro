@@ -5,9 +5,10 @@ interface Props {
   title: string;
   createdDate: Date;
   updatedDate?: Date;
+  meta?: Record<string, any> | null;
 }
 
-const { title, createdDate, updatedDate } = Astro.props;
+const { title, createdDate, updatedDate, meta } = Astro.props;
 
 const showCreatedDate = isValidDate(createdDate);
 const showUpdatedDate = isValidDate(updatedDate) && areDifferentDates(createdDate, updatedDate);

@@ -8,6 +8,7 @@ export const articles = sqliteTable("articles", {
   slug: text("slug").notNull().unique(),
   summary: text("summary").notNull(),
   rendered: text("rendered"),
+  meta: text("meta").$type<Record<string, any>>(),
   createdDate: integer("created_date", { mode: "timestamp_ms" })
     .notNull()
     .$defaultFn(() => new Date()),
