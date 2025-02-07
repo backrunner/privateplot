@@ -1,0 +1,70 @@
+---
+
+import { FRIEND_LINKS_TITLE, FRIEND_LINKS_DESCRIPTION } from '../consts';
+import Page from '../components/layout/Page.astro';
+import FriendLink from '../components/business/FriendLink.astro';
+import type { FriendLink as FriendLinkType } from '../db/schema';
+import { FriendLinkService } from '../services/FriendLinkService';
+
+const friendLinkService = new FriendLinkService(Astro.locals.runtime.env.DB);
+const friendLinks = await friendLinkService.getActive();
+---
+
+<Page>
+  <div class="links-container">
+    <div class="links-header">
+      <h1 class="links-title">{FRIEND_LINKS_TITLE}</h1>
+      <p class="links-description">{FRIEND_LINKS_DESCRIPTION}</p>
+    </div>
+    <div class="links-grid">
+      {friendLinks.map((link: FriendLinkType) => (
+        <FriendLink
+          name={link.name}
+          url={link.url}
+          description={link.description}
+          avatar={link.avatar}
+          status={link.status}
+        />
+      ))}
+    </div>
+  </div>
+</Page>
+
+<style lang="scss">
+  .links-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+  }
+
+  .links-header {
+    text-align: center;
+    margin-bottom: 3rem;
+  }
+
+  .links-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    background: linear-gradient(to right, #a78bfa, #818cf8);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .links-description {
+    font-size: 1.1rem;
+    color: rgba(255, 255, 255, 0.8);
+    margin: 0;
+  }
+
+  .links-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+
+    @media (max-width: 640px) {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

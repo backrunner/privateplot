@@ -1,0 +1,98 @@
+---
+interface Props {
+  name: string;
+  url: string;
+  description: string | null;
+  avatar?: string | null;
+  status: string;
+}
+
+const { name, url, description, avatar, status } = Astro.props;
+const isActive = status === 'active';
+---
+
+<div class="friend-link">
+  <div class="friend-link__title-wrapper">
+    <div class="friend-link__title-border" />
+    <a href={url} target="_blank" rel="noopener noreferrer" class="friend-link__title-link">
+      <div class="friend-link__header">
+        {avatar && <img src={avatar} alt={name} class="friend-link__avatar" />}
+        <h2 class="friend-link__title">{name}</h2>
+      </div>
+    </a>
+  </div>
+  <div class="friend-link__content">
+    {description && <p class="friend-link__description">{description}</p>}
+  </div>
+</div>
+
+<style lang="scss">
+  .friend-link {
+    width: 100%;
+    margin: 1.25em 0;
+    padding: 0.875rem 1.75rem;
+    box-sizing: border-box;
+    border-radius: 2rem;
+    background: var(--block-bg);
+    backdrop-filter: blur(1.5rem);
+    transition: transform 0.3s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+    }
+
+    &__title-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    &__title-border {
+      position: absolute;
+      left: 0;
+      width: 4px;
+      height: 42%;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 2px;
+      box-sizing: border-box;
+    }
+
+    &__title-link {
+      text-decoration: none;
+      color: inherit;
+      width: 100%;
+      padding-left: 1.25rem;
+    }
+
+    &__header {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin: 1rem 0;
+    }
+
+    &__avatar {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    &__title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    &__content {
+      padding-left: 1.25rem;
+    }
+
+    &__description {
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: rgba(255, 255, 255, 0.8);
+      margin: 0.5rem 0 1rem;
+    }
+  }
+</style>
