@@ -12,11 +12,14 @@
     "privateplot": "./bin/cli.js"
   },
   "scripts": {
-    "build": "rollup -c",
-    "watch": "rollup -c -w"
+    "build": "rollup -c --configPlugin @rollup/plugin-typescript",
+    "watch": "rollup -c --configPlugin @rollup/plugin-typescript -w"
   },
   "dependencies": {
+    "@rollup/plugin-typescript": "^12.1.2",
+    "chalk": "^5.4.1",
     "commander": "^13.1.0",
+    "figures": "^5.0.0",
     "js-yaml": "^4.1.0"
   },
   "devDependencies": {
@@ -26,6 +29,7 @@
     "@rollup/plugin-babel": "^6.0.4",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.0",
+    "@types/figures": "^2.0.0",
     "@types/js-yaml": "^4.0.9",
     "rollup": "^4.32.0"
   }
