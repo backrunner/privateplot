@@ -4,6 +4,7 @@ import { program } from 'commander';
 import { publishArticle } from './commands/publish';
 import { handleSettings } from './commands/settings';
 import { deleteArticle } from './commands/delete';
+import { addLink, modifyLink, deleteLink } from './commands/links';
 import { loadSettings } from './utils/config';
 import { logger } from './utils/logger';
 
@@ -54,5 +55,48 @@ program
   .option('--host <host>', 'Set instance hostname')
   .option('--token <token>', 'Set internal auth token')
   .action(handleSettings);
+
+const links = program
+  .command('links')
+  .description('Manage friend links');
+
+links
+  .command('add')
+  .description('Add a new friend link')
+  .action(async () => {
+    try {
+      const settings = await loadSettings();
+      await addLink(settings);
+    } catch (error) {
+      logger.error(`Error adding friend link: ${error}`);
+      process.exit(1);
+    }
+  });
+
+links
+  .command('modify')
+  .description('Modify an existing friend link')
+  .action(async () => {
+    try {
+      const settings = await loadSettings();
+      await modifyLink(settings);
+    } catch (error) {
+      logger.error(`Error modifying friend link: ${error}`);
+      process.exit(1);
+    }
+  });
+
+links
+  .command('delete')
+  .description('Delete a friend link')
+  .action(async () => {
+    try {
+      const settings = await loadSettings();
+      await deleteLink(settings);
+    } catch (error) {
+      logger.error(`Error deleting friend link: ${error}`);
+      process.exit(1);
+    }
+  });
 
 program.parse();

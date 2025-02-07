@@ -1,0 +1,286 @@
+import inquirer from 'inquirer';
+import { logger } from '../utils/logger';
+import type { Settings } from '../types';
+import { getAuthToken } from '../utils/config';
+
+interface FriendLink {
+  id: string;
+  name: string;
+  url: string;
+  description?: string;
+  avatar?: string;
+  status?: 'active' | 'inactive';
+}
+
+export async function addLink(settings: Settings) {
+  const answers = await inquirer.prompt([
+    {
+      type: 'input',
+      name: 'name',
+      message: 'Enter friend link name:',
+      validate: (input) => input.length > 0 || 'Name cannot be empty',
+    },
+    {
+      type: 'input',
+      name: 'url',
+      message: 'Enter friend link URL:',
+      validate: (input) => {
+        try {
+          new URL(input);
+          return true;
+        } catch {
+          return 'Please enter a valid URL';
+        }
+      },
+    },
+    {
+      type: 'input',
+      name: 'description',
+      message: 'Enter friend link description (optional):',
+    },
+    {
+      type: 'input',
+      name: 'avatar',
+      message: 'Enter avatar URL (optional):',
+      validate: (input) => {
+        if (!input) return true;
+        try {
+          new URL(input);
+          return true;
+        } catch {
+          return 'Please enter a valid URL';
+        }
+      },
+    },
+    {
+      type: 'list',
+      name: 'status',
+      message: 'Select status:',
+      choices: [
+        { name: 'Active', value: 'active' },
+        { name: 'Inactive', value: 'inactive' },
+      ],
+      default: 'active',
+    },
+  ]);
+
+  try {
+    const authToken = await getAuthToken(settings);
+    if (!authToken) {
+      throw new Error('Authentication token not found');
+    }
+
+    if (!settings.instanceHost) {
+      throw new Error('Instance host not configured');
+    }
+
+    const protocol = settings.instanceHost === 'localhost' || settings.instanceHost.startsWith('localhost:') ? 'http' : 'https';
+    const response = await fetch(`${protocol}://${settings.instanceHost}/api/internal/friend-links`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Internal-Auth-Token': authToken,
+      },
+      body: JSON.stringify(answers),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to add: ${response.statusText}`);
+    }
+
+    logger.success('Friend link added successfully!');
+  } catch (error) {
+    logger.error(`Error adding friend link: ${error}`);
+  }
+}
+
+export async function modifyLink(settings: Settings) {
+  try {
+    const authToken = await getAuthToken(settings);
+    if (!authToken) {
+      throw new Error('Authentication token not found');
+    }
+
+    if (!settings.instanceHost) {
+      throw new Error('Instance host not configured');
+    }
+
+    const protocol = settings.instanceHost === 'localhost' || settings.instanceHost.startsWith('localhost:') ? 'http' : 'https';
+    const linksResponse = await fetch(`${protocol}://${settings.instanceHost}/api/internal/friend-links`, {
+      headers: {
+        'X-Internal-Auth-Token': authToken,
+      },
+    });
+    if (!linksResponse.ok) {
+      throw new Error('Failed to get friend links list');
+    }
+
+    const links = (await linksResponse.json()) as FriendLink[];
+    if (links.length === 0) {
+      logger.info('No friend links found');
+      return;
+    }
+
+    const { linkId } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'linkId',
+        message: 'Select friend link to modify:',
+        choices: links.map((link: FriendLink) => ({
+          name: `${link.name} (${link.url})`,
+          value: link.id,
+        })),
+      },
+    ]);
+
+    const currentLink = links.find((link: FriendLink) => link.id === linkId);
+    if (!currentLink) {
+      throw new Error('Selected friend link not found');
+    }
+
+    const answers = await inquirer.prompt([
+      {
+        type: 'input',
+        name: 'name',
+        message: 'Enter new name (leave empty to keep current):',
+        default: currentLink.name,
+      },
+      {
+        type: 'input',
+        name: 'url',
+        message: 'Enter new URL (leave empty to keep current):',
+        default: currentLink.url,
+        validate: (input) => {
+          try {
+            new URL(input);
+            return true;
+          } catch {
+            return 'Please enter a valid URL';
+          }
+        },
+      },
+      {
+        type: 'input',
+        name: 'description',
+        message: 'Enter new description (leave empty to keep current):',
+        default: currentLink.description,
+      },
+      {
+        type: 'input',
+        name: 'avatar',
+        message: 'Enter new avatar URL (leave empty to keep current):',
+        default: currentLink.avatar,
+        validate: (input) => {
+          if (!input) return true;
+          try {
+            new URL(input);
+            return true;
+          } catch {
+            return 'Please enter a valid URL';
+          }
+        },
+      },
+      {
+        type: 'list',
+        name: 'status',
+        message: 'Select new status:',
+        choices: [
+          { name: 'Active', value: 'active' },
+          { name: 'Inactive', value: 'inactive' },
+        ],
+        default: currentLink.status,
+      },
+    ]);
+
+    const updateData = Object.fromEntries(
+      Object.entries(answers).filter(([_, value]) => value !== '')
+    );
+
+    const response = await fetch(`${protocol}://${settings.instanceHost}/api/internal/friend-links/${linkId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Internal-Auth-Token': authToken,
+      },
+      body: JSON.stringify(updateData),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to modify: ${response.statusText}`);
+    }
+
+    logger.success('Friend link modified successfully!');
+  } catch (error) {
+    logger.error(`Error modifying friend link: ${error}`);
+  }
+}
+
+export async function deleteLink(settings: Settings) {
+  try {
+    const authToken = await getAuthToken(settings);
+    if (!authToken) {
+      throw new Error('Authentication token not found');
+    }
+
+    if (!settings.instanceHost) {
+      throw new Error('Instance host not configured');
+    }
+
+    const protocol = settings.instanceHost === 'localhost' || settings.instanceHost.startsWith('localhost:') ? 'http' : 'https';
+    const linksResponse = await fetch(`${protocol}://${settings.instanceHost}/api/internal/friend-links`, {
+      headers: {
+        'X-Internal-Auth-Token': authToken,
+      },
+    });
+    if (!linksResponse.ok) {
+      throw new Error('Failed to get friend links list');
+    }
+
+    const links = (await linksResponse.json()) as FriendLink[];
+    if (links.length === 0) {
+      logger.info('No friend links found');
+      return;
+    }
+
+    const { linkId } = await inquirer.prompt([
+      {
+        type: 'list',
+        name: 'linkId',
+        message: 'Select friend link to delete:',
+        choices: links.map((link: FriendLink) => ({
+          name: `${link.name} (${link.url})`,
+          value: link.id,
+        })),
+      },
+    ]);
+
+    const { confirm } = await inquirer.prompt([
+      {
+        type: 'confirm',
+        name: 'confirm',
+        message: 'Are you sure you want to delete this friend link? This action cannot be undone',
+        default: false,
+      },
+    ]);
+
+    if (!confirm) {
+      logger.info('Operation cancelled');
+      return;
+    }
+
+    const response = await fetch(`${protocol}://${settings.instanceHost}/api/internal/friend-links/${linkId}`, {
+      method: 'DELETE',
+      headers: {
+        'X-Internal-Auth-Token': authToken,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to delete: ${response.statusText}`);
+    }
+
+    logger.success('Friend link deleted successfully!');
+  } catch (error) {
+    logger.error(`Error deleting friend link: ${error}`);
+  }
+} 

@@ -30,7 +30,9 @@
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.0",
     "@types/figures": "^2.0.0",
+    "@types/inquirer": "^9.0.7",
     "@types/js-yaml": "^4.0.9",
+    "inquirer": "^8.2.6",
     "rollup": "^4.32.0"
   }
 }
