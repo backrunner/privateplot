@@ -17,6 +17,10 @@ const initialArticles = sortedArticles.slice(0, ITEMS_PER_PAGE).map(({ id, title
   createdDate,
   updatedDate,
   slug,
+  meta: {
+    createdDate,
+    updatedDate,
+  },
 }));
 
 const hasMore = articles.length > ITEMS_PER_PAGE;
