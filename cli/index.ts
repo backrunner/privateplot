@@ -3,6 +3,7 @@
 import { program } from 'commander';
 import { publishArticle } from './commands/publish';
 import { handleSettings } from './commands/settings';
+import { deleteArticle } from './commands/delete';
 import { loadSettings } from './utils/config';
 import { logger } from './utils/logger';
 
@@ -29,6 +30,20 @@ program
       await publishArticle(path, settings, { concurrency });
     } catch (error) {
       logger.error(`Error publishing article: ${error}`);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('delete')
+  .description('Delete an article from PrivatePlot instance')
+  .argument('<file>', 'markdown file to delete')
+  .action(async (file: string) => {
+    try {
+      const settings = await loadSettings();
+      await deleteArticle(file, settings);
+    } catch (error) {
+      logger.error(`Error deleting article: ${error}`);
       process.exit(1);
     }
   });

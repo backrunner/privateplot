@@ -9,6 +9,7 @@ const prefix = {
   error: chalk.red(figures.cross),
   skipped: chalk.gray(figures.line),
   retry: chalk.yellow(figures.warning),
+  delete: chalk.red(figures.warning),
 };
 
 export const logger = {
@@ -44,12 +45,29 @@ export const logger = {
     console.log(`${prefix.info} ${chalk.blue(action)} ${chalk.dim('→')} ${chalk.bold(title)}`);
   },
 
+  articleInfo: (key: string, value: string) => {
+    console.log(`${chalk.dim('│')} ${chalk.cyan(key)}: ${chalk.bold(value)}`);
+  },
+
   skipped: (title: string, reason: string) => {
     console.log(`${prefix.skipped} ${chalk.gray(title)} ${chalk.dim('(')}${chalk.gray(reason)}${chalk.dim(')')}`);
   },
 
   retry: (title: string, attempt: number) => {
     console.log(`${prefix.retry} ${chalk.yellow('Retrying')} ${chalk.bold(title)} ${chalk.dim(`(attempt ${attempt}/3)`)}`);
+  },
+
+  deleteConfirm: () => {
+    console.log('');
+    console.log(`${prefix.delete} ${chalk.red('You are about to delete the following article:')}`);
+    console.log(chalk.dim('┌'));
+  },
+
+  deletePrompt: () => {
+    console.log(chalk.dim('└'));
+    console.log('');
+    console.log(`${prefix.delete} ${chalk.red('This action cannot be undone!')}`);
+    console.log(`${prefix.warning} ${chalk.yellow('Are you sure you want to delete this article? [y/N]')}`);
   },
 
   publishStart: (total: number) => {
