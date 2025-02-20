@@ -6,6 +6,7 @@
   "description": "Yet another blog framework based on Astro",
   "license": "Apache-2.0",
   "scripts": {
+    "postinstall": "patch-package",
     "dev": "npm run build:assets && astro dev",
     "build": "npm run build:assets && astro build",
     "build:assets": "node --experimental-strip-types scripts/build-assets.ts",
@@ -48,6 +49,7 @@
     "dotenv": "^16.4.7",
     "drizzle-kit": "^0.30.4",
     "gray-matter": "^4.0.3",
+    "patch-package": "^8.0.0",
     "sass": "^1.84.0",
     "typescript": "^5.7.3",
     "wrangler": "^3.107.3"
