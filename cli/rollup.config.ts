@@ -12,7 +12,7 @@ export default {
   input: 'index.ts',
   output: {
     file: './bin/cli.js',
-    format: 'cjs',
+    format: 'esm',
     banner: '#!/usr/bin/env node',
   },
   external,

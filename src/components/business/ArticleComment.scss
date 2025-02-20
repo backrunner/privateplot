@@ -1,0 +1,18 @@
+.article-comment {
+  margin-top: 2rem;
+  display: none;
+
+  &.visible {
+    display: block;
+    animation: fadeIn 0.4s ease-in-out forwards;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

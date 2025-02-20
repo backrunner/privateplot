@@ -16,31 +16,31 @@ export const logger = {
   info: (message: string) => {
     console.log(`${prefix.info} ${chalk.blue(message)}`);
   },
-  
+
   success: (message: string) => {
     console.log(`${prefix.success} ${chalk.green(message)}`);
   },
-  
+
   warning: (message: string) => {
     console.log(`${prefix.warning} ${chalk.yellow(message)}`);
   },
-  
+
   error: (message: string) => {
     console.error(`${prefix.error} ${chalk.red(message)}`);
   },
-  
+
   settings: (key: string, value: string) => {
     console.log(`${chalk.dim('│')} ${chalk.cyan(key)}: ${value}`);
   },
-  
+
   settingsHeader: () => {
     console.log(`${chalk.dim('┌')} ${chalk.bold('Current Settings')}`);
   },
-  
+
   settingsFooter: () => {
     console.log(chalk.dim('└'));
   },
-  
+
   articleAction: (action: string, title: string) => {
     console.log(`${prefix.info} ${chalk.blue(action)} ${chalk.dim('→')} ${chalk.bold(title)}`);
   },
@@ -91,10 +91,10 @@ export const logger = {
     const width = 30;
     const completed = Math.round((width * current) / total);
     const remaining = width - completed;
-    
+
     const bar = chalk.blue('█').repeat(completed) + chalk.gray('░').repeat(remaining);
     process.stdout.write(`\r${chalk.dim('│')} ${bar} ${chalk.blue(percentage)}%`);
-    
+
     if (current === total) {
       process.stdout.write('\n');
     }
@@ -106,7 +106,7 @@ export const logger = {
     console.log('');
     console.log(`${prefix.error} ${chalk.red('Failed articles:')}`);
     console.log(chalk.dim('┌'));
-    
+
     articles.forEach((article, index) => {
       if (index > 0) console.log(chalk.dim('├'));
       console.log(`${chalk.dim('│')} ${chalk.bold(article.title)}`);
@@ -114,7 +114,7 @@ export const logger = {
       console.log(`${chalk.dim('│')} ${chalk.dim('Error:')} ${chalk.red(article.error)}`);
       console.log(`${chalk.dim('│')} ${chalk.dim('Retries:')} ${chalk.yellow(article.retries)}`);
     });
-    
+
     console.log(chalk.dim('└'));
   },
 
@@ -122,4 +122,4 @@ export const logger = {
     console.log('');
     console.log(`${prefix.warning} ${chalk.yellow(`Would you like to retry publishing ${count} failed articles? [y/N]`)}`);
   },
-}; 
+};

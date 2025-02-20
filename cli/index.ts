@@ -1,10 +1,8 @@
-#!/usr/bin/env node
-
 import { program } from 'commander';
 import { publishArticle } from './commands/publish';
 import { handleSettings } from './commands/settings';
 import { deleteArticle } from './commands/delete';
-import { addLink, modifyLink, deleteLink } from './commands/links';
+import { addLink, modifyLink, deleteLink, listLinks } from './commands/links';
 import { loadSettings } from './utils/config';
 import { logger } from './utils/logger';
 
@@ -22,7 +20,7 @@ program
     try {
       const settings = await loadSettings();
       const concurrency = parseInt(options.concurrency, 10);
-      
+
       if (isNaN(concurrency) || concurrency < 1) {
         logger.error('Concurrency must be a positive number');
         process.exit(1);
@@ -95,6 +93,19 @@ links
       await deleteLink(settings);
     } catch (error) {
       logger.error(`Error deleting friend link: ${error}`);
+      process.exit(1);
+    }
+  });
+
+links
+  .command('list')
+  .description('List all friend links')
+  .action(async () => {
+    try {
+      const settings = await loadSettings();
+      await listLinks(settings);
+    } catch (error) {
+      logger.error(`Error listing friend links: ${error}`);
       process.exit(1);
     }
   });

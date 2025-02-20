@@ -41,7 +41,7 @@ const description = article.content
 
 // Process keywords from meta
 const keywords = article.meta?.keywords;
-const processedKeywords = Array.isArray(keywords) 
+const processedKeywords = Array.isArray(keywords)
   ? keywords.join(', ')
   : typeof keywords === 'string'
     ? keywords
@@ -50,9 +50,7 @@ const processedKeywords = Array.isArray(keywords)
 
 <Page>
 	<Fragment slot="head">
-		{hasKaTeX && (
-			<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css" integrity="sha384-n8MVd4RsNIU0tAv4ct0nTaAbDJwPJzDEaqSD1odI+WdtXRGWt2kTvGFasHpSy3SV" crossorigin="anonymous">
-		)}
+
 		<meta property="og:title" content={`${article.title} - ${SITE_TITLE}`} />
 		<meta property="og:description" content={description} />
 		<meta property="og:image" content={new URL(firstImage, Astro.site)} />
@@ -73,15 +71,17 @@ const processedKeywords = Array.isArray(keywords)
 		<meta name="twitter:description" content={description} />
 		<meta name="twitter:image" content={new URL(firstImage, Astro.site)} />
 		<link rel="canonical" href={canonicalURL} />
+    {hasKaTeX && (
+			<link rel="stylesheet" href="/css/katex.min.css">
+		)}
 	</Fragment>
 	<ArticleContent
 		title={article.title}
 		createdDate={article.createdDate}
 		updatedDate={article.updatedDate}
 		meta={article.meta}
+		slug={article.slug}
 	>
 		<div class="markdown-content" set:html={article.rendered} />
 	</ArticleContent>
 </Page>
-
-

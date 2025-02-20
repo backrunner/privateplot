@@ -27,17 +27,15 @@ async function askForConfirmation(title: string, path: string): Promise<boolean>
 }
 
 export async function deleteArticle(filePath: string, settings: Settings) {
-  // 验证文件是否存在且是 Markdown 文件
   const isMd = await isMarkdownFile(filePath);
   if (!isMd) {
     logger.error(`Invalid file: ${filePath} - must be a markdown file`);
     process.exit(1);
   }
 
-  // 读取文件内容
   const content = await readFile(filePath, 'utf-8');
   const frontMatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
-  
+
   if (!frontMatterMatch) {
     logger.error('No frontmatter found in the file');
     process.exit(1);
@@ -51,7 +49,6 @@ export async function deleteArticle(filePath: string, settings: Settings) {
     process.exit(1);
   }
 
-  // 检查必要的字段
   if (!frontMatter['privateplot-id']) {
     logger.error('No article ID found in frontmatter. The file might not have been published yet');
     process.exit(1);
@@ -62,7 +59,6 @@ export async function deleteArticle(filePath: string, settings: Settings) {
     process.exit(1);
   }
 
-  // 获取认证信息
   const authToken = await getAuthToken(settings);
   if (!authToken) {
     logger.error('No auth token found. Please set it using `privateplot settings --token <token>` or INTERNAL_AUTH_TOKEN environment variable');
@@ -74,7 +70,6 @@ export async function deleteArticle(filePath: string, settings: Settings) {
     process.exit(1);
   }
 
-  // 请求用户确认
   const confirmed = await askForConfirmation(
     frontMatter.title || 'Untitled',
     filePath
@@ -85,7 +80,6 @@ export async function deleteArticle(filePath: string, settings: Settings) {
     return;
   }
 
-  // 执行删除操作
   const protocol = settings.instanceHost === 'localhost' || settings.instanceHost.startsWith('localhost:') ? 'http' : 'https';
   const baseUrl = `${protocol}://${settings.instanceHost}/api/internal/article`;
 
@@ -114,4 +108,4 @@ export async function deleteArticle(filePath: string, settings: Settings) {
     logger.error(`Error deleting article: ${error}`);
     process.exit(1);
   }
-} 
+}

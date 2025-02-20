@@ -1,52 +1,63 @@
+import dotenv from 'dotenv';
 import { load } from 'js-yaml';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { homedir } from 'node:os';
 import { existsSync } from 'node:fs';
 import type { Settings } from '../types';
+import { logger } from './logger';
+
+dotenv.config();
 
 const CONFIG_PATHS = [
-  join(homedir(), '.privateplot'),      // JSON
-  join(homedir(), '.privateplot.json'), // JSON
-  join(homedir(), '.privateplot.yaml'), // YAML
-  join(homedir(), '.privateplot.yml'),  // YAML
+  join(process.cwd(), '.privateplot'),      // JSON
+  join(process.cwd(), '.privateplot.json'), // JSON
+  join(process.cwd(), '.privateplot.yaml'), // YAML
+  join(process.cwd(), '.privateplot.yml'),  // YAML
 ] as const;
 
+const DEFAULT_HOST = 'http://localhost:4321';
+
 export async function loadSettings(): Promise<Settings> {
-  // 查找第一个存在的配置文件
   const configFile = CONFIG_PATHS.find(path => existsSync(path));
 
   if (!configFile) {
-    return {
-      instanceHost: process.env.PRIVATEPLOT_HOST,
-    };
+    const instanceHost = process.env.PRIVATEPLOT_HOST || DEFAULT_HOST;
+    if (!process.env.PRIVATEPLOT_HOST) {
+      logger.warning('No instance host configured, using default: ' + DEFAULT_HOST);
+    }
+    return { instanceHost };
   }
 
   try {
     const content = await readFile(configFile, 'utf-8');
     let fileSettings: Settings;
 
-    // 根据文件扩展名决定解析方式
     if (configFile.endsWith('.json')) {
       fileSettings = JSON.parse(content);
     } else {
       fileSettings = load(content) as Settings;
     }
 
+    const instanceHost = process.env.PRIVATEPLOT_HOST || fileSettings.instanceHost || DEFAULT_HOST;
+    if (!process.env.PRIVATEPLOT_HOST && !fileSettings.instanceHost) {
+      logger.warning('No instance host configured, using default: ' + DEFAULT_HOST);
+    }
+
     return {
       ...fileSettings,
-      instanceHost: process.env.PRIVATEPLOT_HOST || fileSettings.instanceHost,
+      instanceHost,
     };
   } catch {
-    return {
-      instanceHost: process.env.PRIVATEPLOT_HOST,
-    };
+    const instanceHost = process.env.PRIVATEPLOT_HOST || DEFAULT_HOST;
+    if (!process.env.PRIVATEPLOT_HOST) {
+      logger.warning('No instance host configured, using default: ' + DEFAULT_HOST);
+    }
+    return { instanceHost };
   }
 }
 
-// 使用第一个配置文件路径作为默认的写入路径
 export const CONFIG_FILE = CONFIG_PATHS[0];
 
 export async function getAuthToken(settings: Settings): Promise<string> {
   return process.env.INTERNAL_AUTH_TOKEN || settings.internalAuthToken || '';
-} 
+}

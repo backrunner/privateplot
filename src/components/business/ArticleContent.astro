@@ -1,14 +1,16 @@
 ---
 import { formatDate, isValidDate, areDifferentDates } from '../../utils/date';
+import { ArticleComment } from './ArticleComment';
 
 interface Props {
   title: string;
   createdDate: Date;
   updatedDate?: Date;
   meta?: Record<string, any> | null;
+  slug: string;
 }
 
-const { title, createdDate, updatedDate, meta } = Astro.props;
+const { title, createdDate, updatedDate, meta, slug } = Astro.props;
 
 const showCreatedDate = isValidDate(createdDate);
 const showUpdatedDate = isValidDate(updatedDate) && areDifferentDates(createdDate, updatedDate);
@@ -29,6 +31,8 @@ const showUpdatedDate = isValidDate(updatedDate) && areDifferentDates(createdDat
     <div class="content">
       <slot />
     </div>
+
+    <ArticleComment slug={slug} title={title} client:only />
   </div>
 </article>
 
@@ -41,6 +45,8 @@ const showUpdatedDate = isValidDate(updatedDate) && areDifferentDates(createdDat
     border-radius: 2rem;
     background: var(--block-bg);
     backdrop-filter: blur(1.5rem);
+    box-shadow: 2px 4px 12px 0 rgba(0, 0, 0, 0.1);
+    transition: height 0.2s ease;
 
     .title-container {
       position: relative;
@@ -149,11 +155,10 @@ const showUpdatedDate = isValidDate(updatedDate) && areDifferentDates(createdDat
 
       :global(blockquote) {
         margin: 1.5rem 0;
-        padding: 1rem 1.5rem;
+        padding: 1rem 1.25rem;
         border-left: 4px solid rgba(255, 255, 255, 0.2);
         background-color: rgba(255, 255, 255, 0.05);
         border-radius: 0.5rem;
-        font-style: italic;
 
         :global(p) {
           margin: 0;

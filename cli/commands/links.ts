@@ -2,6 +2,8 @@ import inquirer from 'inquirer';
 import { logger } from '../utils/logger';
 import type { Settings } from '../types';
 import { getAuthToken } from '../utils/config';
+import Table from 'cli-table3';
+import chalk from 'chalk';
 
 interface FriendLink {
   id: string;
@@ -283,4 +285,59 @@ export async function deleteLink(settings: Settings) {
   } catch (error) {
     logger.error(`Error deleting friend link: ${error}`);
   }
-} 
+}
+
+export async function listLinks(settings: Settings) {
+  try {
+    const authToken = await getAuthToken(settings);
+    if (!authToken) {
+      throw new Error('Authentication token not found');
+    }
+
+    if (!settings.instanceHost) {
+      throw new Error('Instance host not configured');
+    }
+
+    const protocol = settings.instanceHost === 'localhost' || settings.instanceHost.startsWith('localhost:') ? 'http' : 'https';
+    const linksResponse = await fetch(`${protocol}://${settings.instanceHost}/api/internal/friend-links`, {
+      headers: {
+        'X-Internal-Auth-Token': authToken,
+      },
+    });
+    if (!linksResponse.ok) {
+      throw new Error('Failed to get friend links list');
+    }
+
+    const links = (await linksResponse.json()) as FriendLink[];
+    if (links.length === 0) {
+      logger.info('No friend links found');
+      return;
+    }
+
+    const table = new Table({
+      head: ['Name', 'URL', 'Description', 'Status'],
+      style: {
+        head: ['cyan'],
+        border: ['gray'],
+      },
+      wordWrap: true,
+      wrapOnWordBoundary: true,
+    });
+
+    links.forEach((link) => {
+      table.push([
+        link.name,
+        link.url,
+        link.description || '-',
+        link.status === 'active'
+          ? chalk.green('Active')
+          : chalk.yellow('Inactive'),
+      ]);
+    });
+
+    console.log(table.toString());
+    logger.info(`Total: ${links.length} links`);
+  } catch (error) {
+    logger.error(`Error listing friend links: ${error}`);
+  }
+}

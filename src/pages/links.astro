@@ -12,29 +12,35 @@ const friendLinks = await friendLinkService.getActive();
 
 <Page>
   <div class="links-container">
-    <div class="links-header">
-      <h1 class="links-title">{FRIEND_LINKS_TITLE}</h1>
-      <p class="links-description">{FRIEND_LINKS_DESCRIPTION}</p>
-    </div>
-    <div class="links-grid">
-      {friendLinks.map((link: FriendLinkType) => (
-        <FriendLink
-          name={link.name}
-          url={link.url}
-          description={link.description}
-          avatar={link.avatar}
-          status={link.status}
-        />
-      ))}
-    </div>
+
+    {friendLinks.length > 0 ? (
+      <div class="links-header">
+        <h1 class="links-title">{FRIEND_LINKS_TITLE}</h1>
+        <p class="links-description">{FRIEND_LINKS_DESCRIPTION}</p>
+      </div>
+      <div class="links-grid">
+        {friendLinks.map((link: FriendLinkType) => (
+          <FriendLink
+            name={link.name}
+            url={link.url}
+            description={link.description}
+            avatar={link.avatar}
+            status={link.status}
+          />
+        ))}
+      </div>
+    ) : (
+      <div class="links-empty">
+        <p>No friend links found</p>
+        <p>Check back later for new links</p>
+      </div>
+    )}
   </div>
 </Page>
 
 <style lang="scss">
   .links-container {
-    max-width: 1200px;
     margin: 0 auto;
-    padding: 2rem 1rem;
   }
 
   .links-header {
@@ -61,10 +67,37 @@ const friendLinks = await friendLinkService.getActive();
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 2rem;
-    margin-top: 2rem;
+    margin-top: 1.25rem;
 
     @media (max-width: 640px) {
       grid-template-columns: 1fr;
+    }
+  }
+
+  .links-empty {
+    position: relative;
+    background: var(--block-bg);
+    backdrop-filter: blur(1.5rem);
+    border-radius: 2rem;
+    padding: 1.5rem;
+    box-sizing: border-box;
+    transition: all 0.3s ease;
+    text-align: left;
+    margin-top: 1.25rem;
+    user-select: none;
+
+    p {
+      margin: 0.5rem 0;
+
+      &:first-child {
+        font-size: 1.25rem;
+        font-weight: 500;
+        color: var(--text-80);
+      }
+
+      &:last-child {
+        color: var(--text-60);
+      }
     }
   }
 </style>
