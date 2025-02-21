@@ -12,9 +12,9 @@ export default defineConfig({
   site: SITE_URL,
   integrations: [sitemap(), preact()],
   adapter: cloudflare(),
-  vite: {
+  vite: process.env.ALLOWED_HOSTS ? {
     server: {
-      allowedHosts: ['backrunner.blog'],
+      allowedHosts: process.env.ALLOWED_HOSTS.split(','),
     },
-  },
+  } : undefined,
 });

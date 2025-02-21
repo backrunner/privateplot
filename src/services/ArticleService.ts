@@ -1,22 +1,27 @@
+// Third-party imports
 import { eq } from 'drizzle-orm';
 import { load } from 'js-yaml';
 import type { D1Database } from '@cloudflare/workers-types';
+import type { Article } from '../types/article';
 import { getDb } from '../db';
 import { articles } from '../db/schema';
-import type { Article } from '../types/article';
-import { generateSlug, extractSummary } from '../utils/article';
 import { CacheService } from './CacheService';
+import { RSS_EVENTS } from './RSSService';
+import { EventBus } from '../utils/eventbus';
+import { generateSlug, extractSummary } from '../utils/article';
 import { MarkdownRenderer } from '../utils/markdown';
 
 export class ArticleService {
   private cache: CacheService;
   private db;
   private markdownRenderer: MarkdownRenderer;
+  private eventBus: EventBus;
 
   constructor(d1: D1Database) {
     this.cache = new CacheService('articles');
     this.db = getDb(d1);
     this.markdownRenderer = MarkdownRenderer.getInstance();
+    this.eventBus = EventBus.getInstance();
   }
 
   private async ensureRendered(article: Article): Promise<Article> {
@@ -68,6 +73,11 @@ export class ArticleService {
     }
 
     return { meta, content: cleanContent };
+  }
+
+  private async invalidateCache(): Promise<void> {
+    await this.cache.clear();
+    this.eventBus.emit(RSS_EVENTS.CACHE_INVALIDATED);
   }
 
   /**
@@ -131,7 +141,7 @@ export class ArticleService {
 
     const results = await this.db.insert(articles).values(newArticle).returning();
 
-    await this.cache.clear();
+    await this.invalidateCache();
     return results[0] as Article;
   }
 
@@ -166,7 +176,7 @@ export class ArticleService {
       .where(eq(articles.id, id))
       .returning();
 
-    await this.cache.clear();
+    await this.invalidateCache();
     return results[0] as Article;
   }
 
@@ -179,7 +189,7 @@ export class ArticleService {
       .where(eq(articles.id, id))
       .returning();
 
-    await this.cache.clear();
+    await this.invalidateCache();
     return results.length > 0;
   }
 }
