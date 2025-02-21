@@ -1,6 +1,5 @@
 import { load, dump } from 'js-yaml';
 import { readFile, writeFile } from 'node:fs/promises';
-import { createInterface } from 'node:readline';
 import type { Settings, FrontMatter, ArticleResponse, PublishStats, FailedArticle, PublishOptions } from '../types';
 import { getAuthToken } from '../utils/config';
 import { logger } from '../utils/logger';
@@ -15,17 +14,15 @@ async function sleep(ms: number): Promise<void> {
 }
 
 async function askForRetry(): Promise<boolean> {
-  const rl = createInterface({
-    input: process.stdin,
-    output: process.stdout
-  });
+  const { default: inquirer } = await import('inquirer');
+  const { retry } = await inquirer.prompt([{
+    type: 'confirm',
+    name: 'retry',
+    message: 'Would you like to retry publishing the failed articles? (y/n)',
+    default: false
+  }]);
 
-  return new Promise(resolve => {
-    rl.question('', answer => {
-      rl.close();
-      resolve(answer.toLowerCase() === 'y');
-    });
-  });
+  return retry;
 }
 
 /**
@@ -66,7 +63,7 @@ export class ConcurrencyController {
   }
 }
 
-async function publishSingleArticle(filePath: string, settings: Settings, retryCount = 0): Promise<{ success: boolean; error?: string }> {
+async function publishSingleArticle(filePath: string, settings: Settings, retryCount = 0): Promise<{ success: boolean; error?: string; auth_error?: boolean }> {
   const content = await readFile(filePath, 'utf-8');
   const frontMatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
 
@@ -105,11 +102,19 @@ async function publishSingleArticle(filePath: string, settings: Settings, retryC
 
   const authToken = await getAuthToken(settings);
   if (!authToken) {
-    return { success: false, error: 'No auth token found. Please set it using `privateplot settings --token <token>` or INTERNAL_AUTH_TOKEN environment variable' };
+    return {
+      success: false,
+      error: 'No auth token found. Please set it using `privateplot settings --token <token>` or INTERNAL_AUTH_TOKEN environment variable',
+      auth_error: true
+    };
   }
 
   if (!settings.instanceHost) {
-    return { success: false, error: 'No instance host configured. Please set it using `privateplot settings --host <host>` or PRIVATEPLOT_HOST environment variable' };
+    return {
+      success: false,
+      error: 'No instance host configured. Please set it using `privateplot settings --host <host>` or PRIVATEPLOT_HOST environment variable',
+      auth_error: true
+    };
   }
 
   const headers = {
@@ -157,6 +162,11 @@ async function publishSingleArticle(filePath: string, settings: Settings, retryC
 
       if (!response.ok) {
         const error = await response.text();
+        // Check if error is auth related
+        const isAuthError = response.status === 401 || response.status === 403;
+        if (isAuthError) {
+          return { success: false, error, auth_error: true };
+        }
         if (retryCount < MAX_RETRIES) {
           logger.retry(frontMatter.title || 'Untitled', retryCount + 2);
           await sleep(RETRY_DELAY);
@@ -207,6 +217,36 @@ async function publishSingleArticle(filePath: string, settings: Settings, retryC
   }
 }
 
+async function askForConfirmation(files: string[], basePath: string): Promise<boolean> {
+  const previewLimit = 5;
+  const preview = files.slice(0, previewLimit);
+  const normalizedBasePath = basePath.replace(/\\/g, '/');
+
+  logger.info('Found markdown files:');
+  preview.forEach(file => {
+    const normalizedFile = file.replace(/\\/g, '/');
+    const relativePath = normalizedFile.startsWith(normalizedBasePath)
+      ? normalizedFile.slice(normalizedBasePath.length).replace(/^\/+/, '')
+      : normalizedFile;
+    logger.info(`- ${relativePath}`);
+  });
+
+  if (files.length > previewLimit) {
+    logger.info(`... and ${files.length - previewLimit} more files`);
+  }
+  logger.info(`Total: ${files.length} files`);
+
+  const { default: inquirer } = await import('inquirer');
+  const { confirm } = await inquirer.prompt([{
+    type: 'confirm',
+    name: 'confirm',
+    message: `Do you want to publish these ${files.length} files?`,
+    default: false
+  }]);
+
+  return confirm;
+}
+
 export async function publishArticle(path: string, settings: Settings, options: PublishOptions = {}) {
   const concurrency = options.concurrency || DEFAULT_CONCURRENCY;
   const controller = new ConcurrencyController(concurrency);
@@ -228,6 +268,13 @@ export async function publishArticle(path: string, settings: Settings, options: 
     return;
   }
 
+  // Ask for confirmation before publishing
+  const confirmed = await askForConfirmation(files, path);
+  if (!confirmed) {
+    logger.info('Publishing cancelled');
+    return;
+  }
+
   // Initialize statistics
   const stats: PublishStats = {
     total: files.length,
@@ -238,6 +285,7 @@ export async function publishArticle(path: string, settings: Settings, options: 
 
   // Track failed articles
   const failedArticles: FailedArticle[] = [];
+  const authFailedArticles: FailedArticle[] = [];
 
   logger.publishStart(files.length);
   let completed = 0;
@@ -261,12 +309,18 @@ export async function publishArticle(path: string, settings: Settings, options: 
         } catch { } // Ignore parsing errors
       }
 
-      failedArticles.push({
+      const failedArticle = {
         path: file,
         title,
         error: result.error || 'Unknown error',
         retries: MAX_RETRIES + 1,
-      });
+      };
+
+      if (result.auth_error) {
+        authFailedArticles.push(failedArticle);
+      } else {
+        failedArticles.push(failedArticle);
+      }
     }
 
     completed++;
@@ -278,7 +332,13 @@ export async function publishArticle(path: string, settings: Settings, options: 
 
   logger.publishEnd(stats);
 
-  // If there are failed articles, show the list and ask for retry
+  // Show auth-related failures first, as they need to be fixed before retrying
+  if (authFailedArticles.length > 0) {
+    logger.failedArticles(authFailedArticles);
+    logger.warning('Please fix authentication issues before retrying these articles');
+  }
+
+  // If there are non-auth-related failed articles, show the list and ask for retry
   if (failedArticles.length > 0) {
     logger.failedArticles(failedArticles);
     logger.retryPrompt(failedArticles.length);

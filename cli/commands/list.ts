@@ -18,7 +18,7 @@ export async function listArticles(settings: Settings) {
   }
 
   const protocol = settings.instanceHost === 'localhost' || settings.instanceHost.startsWith('localhost:') ? 'http' : 'https';
-  const baseUrl = `${protocol}://${settings.instanceHost}/api/articles`;
+  const baseUrl = `${protocol}://${settings.instanceHost}/api/internal/articles`;
 
   try {
     logger.info('Fetching articles...');
@@ -26,12 +26,27 @@ export async function listArticles(settings: Settings) {
     const response = await fetch(baseUrl, {
       headers: {
         'X-Internal-Auth-Token': authToken,
-      },
+      }
     });
 
     if (!response.ok) {
       const error = await response.text();
-      logger.error(`Failed to fetch articles: ${error}`);
+      let errorMessage = `HTTP ${response.status}`;
+
+      if (response.statusText) {
+        errorMessage += ` (${response.statusText})`;
+      }
+
+      try {
+        // Try to parse error as JSON for structured error messages
+        const errorJson = JSON.parse(error);
+        errorMessage += `: ${errorJson.message || errorJson.error || error}`;
+      } catch {
+        // If not JSON, use raw error text
+        errorMessage += `: ${error}`;
+      }
+
+      logger.error(`Failed to fetch articles - ${errorMessage}`);
       process.exit(1);
     }
 
@@ -47,9 +62,10 @@ export async function listArticles(settings: Settings) {
       head: [
         chalk.cyan('ID'),
         chalk.cyan('Title'),
-        chalk.cyan('Last Updated'),
+        chalk.cyan('Created At'),
+        chalk.cyan('Updated At'),
       ],
-      colWidths: [36, 40, 25],
+      colWidths: [36, 40, 25, 25],
       wordWrap: true,
     });
 
@@ -57,7 +73,8 @@ export async function listArticles(settings: Settings) {
       table.push([
         article.id || 'N/A',
         article.title,
-        article.updatedAt || article.createdAt,
+        article.createdAt,
+        article.updatedAt || 'N/A',
       ]);
     });
 
