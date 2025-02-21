@@ -29,7 +29,7 @@ export async function findMarkdownFiles(directory: string): Promise<string[]> {
       const path = join(dir, entry.name);
 
       if (entry.isDirectory()) {
-        // 跳过 node_modules 和 .git 等目录
+        // Skip node_modules and .git etc. directories
         if (!entry.name.startsWith('.') && entry.name !== 'node_modules') {
           await scan(path);
         }

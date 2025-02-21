@@ -7,7 +7,7 @@ import { logger } from '../utils/logger';
 import { isMarkdownFile, isDirectory, findMarkdownFiles, hasFileChanged } from '../utils/files';
 
 const MAX_RETRIES = 2;
-const RETRY_DELAY = 1000; // 1秒
+const RETRY_DELAY = 1000; // 1 second
 const DEFAULT_CONCURRENCY = 10;
 
 async function sleep(ms: number): Promise<void> {
@@ -28,16 +28,23 @@ async function askForRetry(): Promise<boolean> {
   });
 }
 
-// 并发控制器
-class ConcurrencyController {
-  private running = 0;
-  private queue: (() => Promise<void>)[] = [];
+/**
+ * Controls concurrent execution of async tasks with a maximum limit
+ * @class ConcurrencyController
+ */
+export class ConcurrencyController {
+  private running: number = 0;
+  private readonly queue: (() => Promise<void>)[] = [];
 
-  constructor(private maxConcurrency: number) {}
+  public constructor(private readonly maxConcurrency: number) {}
 
-  async add(task: () => Promise<void>): Promise<void> {
+  /**
+   * Adds a task to be executed, respecting the concurrency limit
+   * @param task - The async task to be executed
+   * @returns Promise that resolves when the task completes
+   */
+  public async add(task: () => Promise<void>): Promise<void> {
     if (this.running >= this.maxConcurrency) {
-      // 如果达到最大并发数，加入队列等待
       await new Promise<void>(resolve => {
         this.queue.push(async () => {
           await task();
@@ -45,13 +52,11 @@ class ConcurrencyController {
         });
       });
     } else {
-      // 否则直接执行
       this.running++;
       try {
         await task();
       } finally {
         this.running--;
-        // 执行队列中的下一个任务
         if (this.queue.length > 0) {
           const nextTask = this.queue.shift()!;
           void this.add(nextTask);
@@ -64,16 +69,22 @@ class ConcurrencyController {
 async function publishSingleArticle(filePath: string, settings: Settings, retryCount = 0): Promise<{ success: boolean; error?: string }> {
   const content = await readFile(filePath, 'utf-8');
   const frontMatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
-  
+
   let frontMatter: FrontMatter = {};
   let markdownContent = content;
   let frontMatterIndent = '';
-  
+
   if (frontMatterMatch) {
     try {
       frontMatter = load(frontMatterMatch[1]) as FrontMatter;
       markdownContent = content.slice(frontMatterMatch[0].length).trim();
-      
+
+      // Skip draft articles
+      if (frontMatter.draft === true) {
+        logger.skipped(frontMatter.title || 'Untitled', 'draft article');
+        return { success: true };
+      }
+
       const indentMatch = frontMatterMatch[1].match(/^( +)/m);
       if (indentMatch) {
         frontMatterIndent = indentMatch[1];
@@ -83,7 +94,7 @@ async function publishSingleArticle(filePath: string, settings: Settings, retryC
     }
   }
 
-  // 检查文件是否有修改
+  // Check if file has changed
   if (frontMatter['privateplot-last-published']) {
     const hasChanged = await hasFileChanged(filePath, frontMatter['privateplot-last-published']);
     if (!hasChanged) {
@@ -155,7 +166,7 @@ async function publishSingleArticle(filePath: string, settings: Settings, retryC
       }
 
       const article = (await response.json()) as ArticleResponse;
-      
+
       frontMatter = {
         ...frontMatter,
         'privateplot-id': article.id,
@@ -163,11 +174,11 @@ async function publishSingleArticle(filePath: string, settings: Settings, retryC
       };
     }
 
-    // 更新发布时间
+    // Update publish time
     frontMatter['privateplot-last-published'] = new Date().toISOString();
 
     let yamlContent = dump(frontMatter);
-    
+
     if (frontMatterIndent) {
       yamlContent = yamlContent.split('\n').map((line, index) => {
         if (line && index < yamlContent.split('\n').length - 1) {
@@ -200,7 +211,7 @@ export async function publishArticle(path: string, settings: Settings, options: 
   const concurrency = options.concurrency || DEFAULT_CONCURRENCY;
   const controller = new ConcurrencyController(concurrency);
 
-  // 检查路径是否存在
+  // Check if path exists
   const isDir = await isDirectory(path);
   const isMd = await isMarkdownFile(path);
 
@@ -209,15 +220,15 @@ export async function publishArticle(path: string, settings: Settings, options: 
     process.exit(1);
   }
 
-  // 获取所有需要处理的文件
+  // Get all files to process
   const files = isDir ? await findMarkdownFiles(path) : [path];
-  
+
   if (files.length === 0) {
     logger.warning('No markdown files found');
     return;
   }
 
-  // 初始化统计信息
+  // Initialize statistics
   const stats: PublishStats = {
     total: files.length,
     published: 0,
@@ -225,16 +236,16 @@ export async function publishArticle(path: string, settings: Settings, options: 
     failed: 0,
   };
 
-  // 记录失败的文章
+  // Track failed articles
   const failedArticles: FailedArticle[] = [];
 
   logger.publishStart(files.length);
   let completed = 0;
 
-  // 创建所有发布任务
+  // Create all publish tasks
   const tasks = files.map(file => async () => {
     const result = await publishSingleArticle(file, settings);
-    
+
     if (result.success) {
       stats.published++;
     } else {
@@ -242,12 +253,12 @@ export async function publishArticle(path: string, settings: Settings, options: 
       const content = await readFile(file, 'utf-8');
       const frontMatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
       let title = 'Untitled';
-      
+
       if (frontMatterMatch) {
         try {
           const frontMatter = load(frontMatterMatch[1]) as FrontMatter;
           title = frontMatter.title || 'Untitled';
-        } catch {} // 忽略解析错误
+        } catch { } // Ignore parsing errors
       }
 
       failedArticles.push({
@@ -262,19 +273,19 @@ export async function publishArticle(path: string, settings: Settings, options: 
     logger.progress(completed, files.length);
   });
 
-  // 并发执行所有任务
+  // Execute all tasks concurrently
   await Promise.all(tasks.map(task => controller.add(task)));
 
   logger.publishEnd(stats);
 
-  // 如果有失败的文章，显示失败列表并询问是否重试
+  // If there are failed articles, show the list and ask for retry
   if (failedArticles.length > 0) {
     logger.failedArticles(failedArticles);
     logger.retryPrompt(failedArticles.length);
-    
+
     const shouldRetry = await askForRetry();
     if (shouldRetry) {
-      // 重置统计信息
+      // Reset statistics
       stats.total = failedArticles.length;
       stats.published = 0;
       stats.skipped = 0;
@@ -283,10 +294,10 @@ export async function publishArticle(path: string, settings: Settings, options: 
       logger.publishStart(failedArticles.length);
       completed = 0;
 
-      // 重试失败的文章
+      // Retry failed articles
       const retryTasks = failedArticles.map(({ path }) => async () => {
         const result = await publishSingleArticle(path, settings);
-        
+
         if (result.success) {
           stats.published++;
         } else {
@@ -297,10 +308,10 @@ export async function publishArticle(path: string, settings: Settings, options: 
         logger.progress(completed, failedArticles.length);
       });
 
-      // 并发执行重试任务
+      // Execute retry tasks concurrently
       await Promise.all(retryTasks.map(task => controller.add(task)));
 
       logger.publishEnd(stats);
     }
   }
-} 
+}

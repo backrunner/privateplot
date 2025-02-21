@@ -14,6 +14,10 @@ export interface FrontMatter {
   title?: string;
   summary?: string;
   slug?: string;
+  /**
+   * Whether this article is a draft
+   */
+  draft?: boolean;
   [key: string]: any;
 }
 
@@ -37,4 +41,4 @@ export interface FailedArticle {
   title: string;
   error: string;
   retries: number;
-} 
+}
