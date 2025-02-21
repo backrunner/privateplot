@@ -10,6 +10,7 @@
     "dev": "npm run build:assets && astro dev",
     "build": "npm run build:assets && astro build",
     "build:assets": "node --experimental-strip-types scripts/build-assets.ts",
+    "build:cli": "node --experimental-strip-types scripts/build-cli.ts",
     "preview": "astro preview",
     "astro": "astro",
     "db:generate": "drizzle-kit generate",
