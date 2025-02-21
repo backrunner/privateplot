@@ -17,6 +17,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
   const end = Math.min(start + ITEMS_PER_PAGE, sortedArticles.length);
 
   const paginatedArticles = sortedArticles.slice(start, end).map(article => ({
+    id: article.id,
     title: article.title,
     summary: article.summary,
     createdAt: new Date(article.createdDate).toISOString(),

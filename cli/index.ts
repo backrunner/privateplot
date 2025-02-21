@@ -3,6 +3,7 @@ import { publishArticle } from './commands/publish';
 import { handleSettings } from './commands/settings';
 import { deleteArticle } from './commands/delete';
 import { addLink, modifyLink, deleteLink, listLinks } from './commands/links';
+import { listArticles } from './commands/list';
 import { loadSettings } from './utils/config';
 import { logger } from './utils/logger';
 
@@ -106,6 +107,19 @@ links
       await listLinks(settings);
     } catch (error) {
       logger.error(`Error listing friend links: ${error}`);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('list')
+  .description('List all articles')
+  .action(async () => {
+    try {
+      const settings = await loadSettings();
+      await listArticles(settings);
+    } catch (error) {
+      logger.error(`Error listing articles: ${error}`);
       process.exit(1);
     }
   });
