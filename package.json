@@ -17,7 +17,7 @@
     "db:migrate:local": "wrangler d1 migrations apply privateplot --local",
     "db:migrate:prod": "wrangler d1 migrations apply privateplot --remote",
     "db:seed": "node --experimental-strip-types scripts/seed.ts",
-    "deploy:worker": "wrangler deploy --name privateplot",
+    "deploy": "npm run build && wrangler pages deploy dist --branch main",
     "generate:worker-types": "wrangler types"
   },
   "dependencies": {
