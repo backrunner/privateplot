@@ -31,4 +31,4 @@ wrangler.toml
 .wrangler/
 
 # db
-migrations/
+migrations/meta
