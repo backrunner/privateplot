@@ -3,6 +3,7 @@ import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 import cloudflare from '@astrojs/cloudflare';
 import preact from '@astrojs/preact';
+import postcssVhFix from 'postcss-100vh-fix';
 
 import { SITE_URL } from './src/consts';
 
@@ -12,9 +13,18 @@ export default defineConfig({
   site: SITE_URL,
   integrations: [sitemap(), preact()],
   adapter: cloudflare(),
-  vite: process.env.ALLOWED_HOSTS ? {
-    server: {
-      allowedHosts: process.env.ALLOWED_HOSTS.split(','),
+  vite: {
+    ...(process.env.ALLOWED_HOSTS
+      ? {
+          server: {
+            allowedHosts: process.env.ALLOWED_HOSTS.split(','),
+          },
+        }
+      : undefined),
+    css: {
+      postcss: {
+        plugins: [postcssVhFix()],
+      },
     },
-  } : undefined,
+  },
 });
