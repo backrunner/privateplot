@@ -1,5 +1,5 @@
 {
-  "name": "privateplot-cli",
+  "name": "@privateplot/cli",
   "version": "0.1.0",
   "description": "CLI Tools for PrivatePlot",
   "license": "Apache-2.0",
@@ -22,12 +22,12 @@
     "commander": "^13.1.0",
     "dotenv": "^16.4.7",
     "figures": "^6.1.0",
-    "inquirer": "^12.4.1",
+    "inquirer": "^12.4.2",
     "js-yaml": "^4.1.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.26.8",
-    "@babel/preset-env": "^7.26.8",
+    "@babel/core": "^7.26.9",
+    "@babel/preset-env": "^7.26.9",
     "@babel/preset-typescript": "^7.26.0",
     "@rollup/plugin-babel": "^6.0.4",
     "@rollup/plugin-json": "^6.1.0",
@@ -35,6 +35,6 @@
     "@types/figures": "^3.0.3",
     "@types/inquirer": "^9.0.7",
     "@types/js-yaml": "^4.0.9",
-    "rollup": "^4.34.6"
+    "rollup": "^4.34.8"
   }
 }

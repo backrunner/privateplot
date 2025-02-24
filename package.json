@@ -17,10 +17,11 @@
     "db:migrate:local": "wrangler d1 migrations apply privateplot --local",
     "db:migrate:prod": "wrangler d1 migrations apply privateplot --remote",
     "db:seed": "node --experimental-strip-types scripts/seed.ts",
+    "deploy:worker": "wrangler deploy --name privateplot",
     "generate:worker-types": "wrangler types"
   },
   "dependencies": {
-    "@astrojs/cloudflare": "^12.2.1",
+    "@astrojs/cloudflare": "^12.2.2",
     "@astrojs/mdx": "^4.0.8",
     "@astrojs/preact": "^4.0.4",
     "@astrojs/rss": "^4.0.11",
@@ -29,7 +30,7 @@
     "@paralleldrive/cuid2": "^2.2.2",
     "@shikijs/markdown-it": "^3.0.0",
     "artalk": "^2.9.1",
-    "astro": "^5.3.0",
+    "astro": "^5.3.1",
     "drizzle-orm": "^0.39.3",
     "js-yaml": "^4.1.0",
     "katex": "^0.16.21",
@@ -53,6 +54,6 @@
     "patch-package": "^8.0.0",
     "sass": "^1.85.0",
     "typescript": "^5.7.3",
-    "wrangler": "^3.109.2"
+    "wrangler": "^3.109.3"
   }
 }
