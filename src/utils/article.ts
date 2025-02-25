@@ -62,8 +62,9 @@ export const extractSummary = (content: string, maxLength = 300): string => {
   const paragraphs = cleanContent.split('\n\n');
   const firstParagraph = paragraphs.find(p => {
     const trimmed = p.trim();
-    // Ensure the paragraph has meaningful content
-    return trimmed.length > 0 && trimmed.split(' ').length > 3;
+    // For Chinese content, check character length instead of word count
+    // Consider a paragraph meaningful if it has at least 10 characters
+    return trimmed.length >= 10;
   }) || '';
 
   // Clean up the paragraph and limit length
@@ -75,10 +76,22 @@ export const extractSummary = (content: string, maxLength = 300): string => {
     return summary;
   }
 
-  // Cut at the last complete word before maxLength
+  // Cut at the last complete word or character before maxLength
   const truncated = summary.slice(0, maxLength);
-  const lastSpace = truncated.lastIndexOf(' ');
-  return truncated.slice(0, lastSpace) + '...';
+  // For Chinese text, we can often just cut directly, but we'll try to find a punctuation mark
+  const lastPunctuation = Math.max(
+    truncated.lastIndexOf('。'),
+    truncated.lastIndexOf('！'),
+    truncated.lastIndexOf('？'),
+    truncated.lastIndexOf('，'),
+    truncated.lastIndexOf('；'),
+    truncated.lastIndexOf(' ')
+  );
+
+  // If we found a suitable punctuation, cut there, otherwise use the full truncated text
+  return lastPunctuation > 0 ?
+    truncated.slice(0, lastPunctuation + 1) + '...' :
+    truncated + '...';
 };
 
 /**
