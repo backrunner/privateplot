@@ -5,6 +5,7 @@ import type { Settings, FrontMatter } from '../types';
 import { getAuthToken } from '../utils/config';
 import { logger } from '../utils/logger';
 import { isMarkdownFile } from '../utils/files';
+import { apiRequest } from '../utils/api';
 
 async function askForConfirmation(title: string, path: string): Promise<boolean> {
   const rl = createInterface({
@@ -80,30 +81,25 @@ export async function deleteArticle(filePath: string, settings: Settings) {
     return;
   }
 
-  const protocol = settings.instanceHost === 'localhost' || settings.instanceHost.startsWith('localhost:') ? 'http' : 'https';
-  const baseUrl = `${protocol}://${settings.instanceHost}/api/internal/article`;
-
   try {
     logger.articleAction('Deleting', frontMatter.title || 'Untitled');
 
-    const response = await fetch(`${baseUrl}?id=${frontMatter['privateplot-id']}`, {
+    const result = await apiRequest(settings, {
       method: 'DELETE',
-      headers: {
-        'X-Internal-Auth-Token': authToken,
-      },
+      path: '/api/internal/article',
+      queryParams: { id: frontMatter['privateplot-id'] }
     });
 
-    if (!response.ok) {
-      if (response.status === 404) {
+    if (!result.success) {
+      if (result.status === 404) {
         logger.warning('Article not found on server. It might have been deleted already');
       } else {
-        const error = await response.text();
-        logger.error(`Failed to delete article: ${error}`);
+        logger.error(`Failed to delete article: ${result.error}`);
         process.exit(1);
       }
+    } else {
+      logger.success('Article deleted successfully');
     }
-
-    logger.success('Article deleted successfully');
   } catch (error) {
     logger.error(`Error deleting article: ${error}`);
     process.exit(1);

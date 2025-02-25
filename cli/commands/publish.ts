@@ -4,6 +4,7 @@ import type { Settings, FrontMatter, ArticleResponse, PublishStats, FailedArticl
 import { getAuthToken } from '../utils/config';
 import { logger } from '../utils/logger';
 import { isMarkdownFile, isDirectory, findMarkdownFiles, hasFileChanged } from '../utils/files';
+import { apiRequest } from '../utils/api';
 
 const MAX_RETRIES = 2;
 const RETRY_DELAY = 1000; // 1 second
@@ -18,7 +19,7 @@ async function askForRetry(): Promise<boolean> {
   const { retry } = await inquirer.prompt([{
     type: 'confirm',
     name: 'retry',
-    message: 'Would you like to retry publishing the failed articles? (y/n)',
+    message: 'Would you like to retry publishing the failed articles? (y/N)',
     default: false
   }]);
 
@@ -102,86 +103,61 @@ async function publishSingleArticle(filePath: string, settings: Settings, retryC
     }
   }
 
-  const authToken = await getAuthToken(settings);
-  if (!authToken) {
-    return {
-      success: false,
-      error: 'No auth token found. Please set it using `privateplot settings --token <token>` or INTERNAL_AUTH_TOKEN environment variable',
-      auth_error: true
-    };
-  }
-
-  if (!settings.instanceHost) {
-    return {
-      success: false,
-      error: 'No instance host configured. Please set it using `privateplot settings --host <host>` or PRIVATEPLOT_HOST environment variable',
-      auth_error: true
-    };
-  }
-
-  const headers = {
-    'Content-Type': 'application/json',
-    'X-Internal-Auth-Token': authToken,
-  };
-
-  const protocol = settings.instanceHost === 'localhost' || settings.instanceHost.startsWith('localhost:') ? 'http' : 'https';
-  const baseUrl = `${protocol}://${settings.instanceHost}/api/internal/article`;
-
   try {
     if (frontMatter['privateplot-id'] && frontMatter['privateplot-host'] === settings.instanceHost) {
       logger.articleAction('Updating', frontMatter.title || defaultTitle);
-      const response = await fetch(`${baseUrl}?id=${frontMatter['privateplot-id']}`, {
+
+      const result = await apiRequest<ArticleResponse>(settings, {
         method: 'PATCH',
-        headers,
-        body: JSON.stringify({
+        path: '/api/internal/article',
+        queryParams: { id: frontMatter['privateplot-id'] },
+        body: {
           content: markdownContent,
           title: frontMatter.title || defaultTitle,
           summary: frontMatter.summary,
-        }),
+        }
       });
 
-      if (!response.ok) {
-        const error = await response.text();
+      if (!result.success) {
         if (retryCount < MAX_RETRIES) {
           logger.retry(frontMatter.title || defaultTitle, retryCount + 2);
           await sleep(RETRY_DELAY);
           return publishSingleArticle(filePath, settings, retryCount + 1);
         }
-        return { success: false, error };
+
+        // Check if error is auth related
+        const isAuthError = result.status === 401 || result.status === 403;
+        return { success: false, error: result.error, auth_error: isAuthError };
       }
     } else {
       logger.articleAction('Publishing', frontMatter.title || defaultTitle);
-      const response = await fetch(baseUrl, {
+
+      const result = await apiRequest<ArticleResponse>(settings, {
         method: 'PUT',
-        headers,
-        body: JSON.stringify({
+        path: '/api/internal/article',
+        body: {
           content: markdownContent,
           title: frontMatter.title || defaultTitle,
           summary: frontMatter.summary,
           slug: frontMatter.slug,
-        }),
+        }
       });
 
-      if (!response.ok) {
-        const error = await response.text();
-        // Check if error is auth related
-        const isAuthError = response.status === 401 || response.status === 403;
-        if (isAuthError) {
-          return { success: false, error, auth_error: true };
-        }
+      if (!result.success) {
         if (retryCount < MAX_RETRIES) {
           logger.retry(frontMatter.title || defaultTitle, retryCount + 2);
           await sleep(RETRY_DELAY);
           return publishSingleArticle(filePath, settings, retryCount + 1);
         }
-        return { success: false, error };
-      }
 
-      const article = (await response.json()) as ArticleResponse;
+        // Check if error is auth related
+        const isAuthError = result.status === 401 || result.status === 403;
+        return { success: false, error: result.error, auth_error: isAuthError };
+      }
 
       frontMatter = {
         ...frontMatter,
-        'privateplot-id': article.id,
+        'privateplot-id': result.data?.id,
         'privateplot-host': settings.instanceHost,
       };
     }

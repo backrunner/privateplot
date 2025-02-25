@@ -1,9 +1,9 @@
 import inquirer from 'inquirer';
 import { logger } from '../utils/logger';
 import type { Settings } from '../types';
-import { getAuthToken } from '../utils/config';
 import Table from 'cli-table3';
 import chalk from 'chalk';
+import { apiRequest } from '../utils/api';
 
 interface FriendLink {
   id: string;
@@ -67,27 +67,14 @@ export async function addLink(settings: Settings) {
   ]);
 
   try {
-    const authToken = await getAuthToken(settings);
-    if (!authToken) {
-      throw new Error('Authentication token not found');
-    }
-
-    if (!settings.instanceHost) {
-      throw new Error('Instance host not configured');
-    }
-
-    const protocol = settings.instanceHost === 'localhost' || settings.instanceHost.startsWith('localhost:') ? 'http' : 'https';
-    const response = await fetch(`${protocol}://${settings.instanceHost}/api/internal/friend-links`, {
+    const result = await apiRequest(settings, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Internal-Auth-Token': authToken,
-      },
-      body: JSON.stringify(answers),
+      path: '/api/internal/friend-links',
+      body: answers
     });
 
-    if (!response.ok) {
-      throw new Error(`Failed to add: ${response.statusText}`);
+    if (!result.success) {
+      throw new Error(`Failed to add: ${result.error}`);
     }
 
     logger.success('Friend link added successfully!');
@@ -98,26 +85,15 @@ export async function addLink(settings: Settings) {
 
 export async function modifyLink(settings: Settings) {
   try {
-    const authToken = await getAuthToken(settings);
-    if (!authToken) {
-      throw new Error('Authentication token not found');
-    }
-
-    if (!settings.instanceHost) {
-      throw new Error('Instance host not configured');
-    }
-
-    const protocol = settings.instanceHost === 'localhost' || settings.instanceHost.startsWith('localhost:') ? 'http' : 'https';
-    const linksResponse = await fetch(`${protocol}://${settings.instanceHost}/api/internal/friend-links`, {
-      headers: {
-        'X-Internal-Auth-Token': authToken,
-      },
+    const linksResult = await apiRequest<FriendLink[]>(settings, {
+      path: '/api/internal/friend-links'
     });
-    if (!linksResponse.ok) {
+
+    if (!linksResult.success) {
       throw new Error('Failed to get friend links list');
     }
 
-    const links = (await linksResponse.json()) as FriendLink[];
+    const links = linksResult.data || [];
     if (links.length === 0) {
       logger.info('No friend links found');
       return;
@@ -198,17 +174,14 @@ export async function modifyLink(settings: Settings) {
       Object.entries(answers).filter(([_, value]) => value !== '')
     );
 
-    const response = await fetch(`${protocol}://${settings.instanceHost}/api/internal/friend-links/${linkId}`, {
+    const updateResult = await apiRequest(settings, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Internal-Auth-Token': authToken,
-      },
-      body: JSON.stringify(updateData),
+      path: `/api/internal/friend-links/${linkId}`,
+      body: updateData
     });
 
-    if (!response.ok) {
-      throw new Error(`Failed to modify: ${response.statusText}`);
+    if (!updateResult.success) {
+      throw new Error(`Failed to modify: ${updateResult.error}`);
     }
 
     logger.success('Friend link modified successfully!');
@@ -219,26 +192,15 @@ export async function modifyLink(settings: Settings) {
 
 export async function deleteLink(settings: Settings) {
   try {
-    const authToken = await getAuthToken(settings);
-    if (!authToken) {
-      throw new Error('Authentication token not found');
-    }
-
-    if (!settings.instanceHost) {
-      throw new Error('Instance host not configured');
-    }
-
-    const protocol = settings.instanceHost === 'localhost' || settings.instanceHost.startsWith('localhost:') ? 'http' : 'https';
-    const linksResponse = await fetch(`${protocol}://${settings.instanceHost}/api/internal/friend-links`, {
-      headers: {
-        'X-Internal-Auth-Token': authToken,
-      },
+    const linksResult = await apiRequest<FriendLink[]>(settings, {
+      path: '/api/internal/friend-links'
     });
-    if (!linksResponse.ok) {
+
+    if (!linksResult.success) {
       throw new Error('Failed to get friend links list');
     }
 
-    const links = (await linksResponse.json()) as FriendLink[];
+    const links = linksResult.data || [];
     if (links.length === 0) {
       logger.info('No friend links found');
       return;
@@ -270,15 +232,13 @@ export async function deleteLink(settings: Settings) {
       return;
     }
 
-    const response = await fetch(`${protocol}://${settings.instanceHost}/api/internal/friend-links/${linkId}`, {
+    const deleteResult = await apiRequest(settings, {
       method: 'DELETE',
-      headers: {
-        'X-Internal-Auth-Token': authToken,
-      },
+      path: `/api/internal/friend-links/${linkId}`
     });
 
-    if (!response.ok) {
-      throw new Error(`Failed to delete: ${response.statusText}`);
+    if (!deleteResult.success) {
+      throw new Error(`Failed to delete: ${deleteResult.error}`);
     }
 
     logger.success('Friend link deleted successfully!');
@@ -289,26 +249,15 @@ export async function deleteLink(settings: Settings) {
 
 export async function listLinks(settings: Settings) {
   try {
-    const authToken = await getAuthToken(settings);
-    if (!authToken) {
-      throw new Error('Authentication token not found');
-    }
-
-    if (!settings.instanceHost) {
-      throw new Error('Instance host not configured');
-    }
-
-    const protocol = settings.instanceHost === 'localhost' || settings.instanceHost.startsWith('localhost:') ? 'http' : 'https';
-    const linksResponse = await fetch(`${protocol}://${settings.instanceHost}/api/internal/friend-links`, {
-      headers: {
-        'X-Internal-Auth-Token': authToken,
-      },
+    const linksResult = await apiRequest<FriendLink[]>(settings, {
+      path: '/api/internal/friend-links'
     });
-    if (!linksResponse.ok) {
+
+    if (!linksResult.success) {
       throw new Error('Failed to get friend links list');
     }
 
-    const links = (await linksResponse.json()) as FriendLink[];
+    const links = linksResult.data || [];
     if (links.length === 0) {
       logger.info('No friend links found');
       return;
