@@ -317,7 +317,14 @@ const { count = 200, minSize = 0.1, maxSize = 1, colors = ['#ffecd1', '#fafafa',
   };
 
   window.addEventListener('resize', resizeCanvas);
-  init();
+
+  // Wait for DOM content to be fully loaded before initializing
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    // If DOM is already loaded, initialize immediately
+    init();
+  }
 </script>
 
 <style>

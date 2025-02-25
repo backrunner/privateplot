@@ -21,8 +21,6 @@ import '../../styles/global.scss';
     <ClientRouter />
   </head>
   <body>
-    <Miscellaneous />
-    <Spotlight />
     <div class="page-container">
       <Header transition:persist />
       <main>
@@ -31,6 +29,8 @@ import '../../styles/global.scss';
       <Footer />
     </div>
     <slot name="body-end" />
+    <Miscellaneous />
+    <Spotlight />
   </body>
 </html>
 
