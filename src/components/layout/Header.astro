@@ -52,5 +52,25 @@ import { SITE_TITLE } from '../../consts';
 				letter-spacing: 0.5px;
       }
     }
+
+    /* Mobile responsive styles */
+    @media (max-width: 540px) {
+      height: 60px;
+      padding: 8px 12px;
+      border-radius: 32px;
+
+      .left-section {
+        .site-avatar {
+          width: 36px;
+          height: 36px;
+          margin-right: 10px;
+        }
+
+        .site-title {
+          font-size: 16px;
+          letter-spacing: 0.3px;
+        }
+      }
+    }
   }
 </style>

@@ -25,12 +25,12 @@ export const ArticleBlock = ({ title, summary, createdAt, updatedAt, slug }: Pro
       <div class={styles['article-block__time-info']}>
         {showUpdatedDate && (
           <span class={styles['article-block__time-tag']}>
-            Updated: {formatDate(updatedAt!)}
+            <span class="sr-only">Updated:</span> {formatDate(updatedAt!)}
           </span>
         )}
         {showCreatedDate && (
           <span class={styles['article-block__time-tag']}>
-            Created: {formatDate(createdAt)}
+            <span class="sr-only">Created:</span> {formatDate(createdAt)}
           </span>
         )}
       </div>
