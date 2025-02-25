@@ -5,10 +5,10 @@ import { ENABLE_COPYRIGHT, ENABLE_POWERED_BY } from '../../consts';
 <footer class="page-footer">
 	<div>
 		{ENABLE_POWERED_BY && (
-			<p>Powered by PrivatePlot.</p>
+			<p>Powered by PrivatePlot</p>
 		)}
 		{ENABLE_COPYRIGHT && (
-			<p>All articles are licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="license noopener noreferrer">CC BY-SA 4.0</a>.</p>
+			<p>Licensed under <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="license noopener noreferrer">CC BY-SA 4.0</a></p>
 		)}
 	</div>
 </footer>
@@ -40,6 +40,17 @@ import { ENABLE_COPYRIGHT, ENABLE_POWERED_BY } from '../../consts';
 		}
 		a:hover {
 			color: rgba(255, 255, 255, 0.5);
+		}
+
+		/* Mobile styles for devices below 540px */
+		@media (max-width: 540px) {
+			margin-top: 3rem;
+			margin-bottom: 1rem;
+			font-size: 0.75rem;
+
+			p {
+				margin-bottom: 0.15rem;
+			}
 		}
 	}
 </style>
