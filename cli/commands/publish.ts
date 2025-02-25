@@ -67,6 +67,14 @@ async function publishSingleArticle(filePath: string, settings: Settings, retryC
   const content = await readFile(filePath, 'utf-8');
   const frontMatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
 
+  // Get filename without extension as default title
+  const fileName = filePath.split(/[/\\]/).pop() || '';
+  const fileNameWithoutExt = fileName.replace(/\.[^.]+$/, '');
+  // Convert kebab-case or snake_case to Title Case
+  const defaultTitle = fileNameWithoutExt
+    .replace(/[-_]/g, ' ')
+    .replace(/\b\w/g, (char: string) => char.toUpperCase());
+
   let frontMatter: FrontMatter = {};
   let markdownContent = content;
   let frontMatterIndent = '';
@@ -75,12 +83,6 @@ async function publishSingleArticle(filePath: string, settings: Settings, retryC
     try {
       frontMatter = load(frontMatterMatch[1]) as FrontMatter;
       markdownContent = content.slice(frontMatterMatch[0].length).trim();
-
-      // Skip draft articles
-      if (frontMatter.draft === true) {
-        logger.skipped(frontMatter.title || 'Untitled', 'draft article');
-        return { success: true };
-      }
 
       const indentMatch = frontMatterMatch[1].match(/^( +)/m);
       if (indentMatch) {
@@ -95,7 +97,7 @@ async function publishSingleArticle(filePath: string, settings: Settings, retryC
   if (frontMatter['privateplot-last-published']) {
     const hasChanged = await hasFileChanged(filePath, frontMatter['privateplot-last-published']);
     if (!hasChanged) {
-      logger.skipped(frontMatter.title || 'Untitled', 'no changes since last publish');
+      logger.skipped(frontMatter.title || defaultTitle, 'no changes since last publish');
       return { success: true };
     }
   }
@@ -127,13 +129,13 @@ async function publishSingleArticle(filePath: string, settings: Settings, retryC
 
   try {
     if (frontMatter['privateplot-id'] && frontMatter['privateplot-host'] === settings.instanceHost) {
-      logger.articleAction('Updating', frontMatter.title || 'Untitled');
+      logger.articleAction('Updating', frontMatter.title || defaultTitle);
       const response = await fetch(`${baseUrl}?id=${frontMatter['privateplot-id']}`, {
         method: 'PATCH',
         headers,
         body: JSON.stringify({
           content: markdownContent,
-          title: frontMatter.title || 'Untitled',
+          title: frontMatter.title || defaultTitle,
           summary: frontMatter.summary,
         }),
       });
@@ -141,20 +143,20 @@ async function publishSingleArticle(filePath: string, settings: Settings, retryC
       if (!response.ok) {
         const error = await response.text();
         if (retryCount < MAX_RETRIES) {
-          logger.retry(frontMatter.title || 'Untitled', retryCount + 2);
+          logger.retry(frontMatter.title || defaultTitle, retryCount + 2);
           await sleep(RETRY_DELAY);
           return publishSingleArticle(filePath, settings, retryCount + 1);
         }
         return { success: false, error };
       }
     } else {
-      logger.articleAction('Publishing', frontMatter.title || 'Untitled');
+      logger.articleAction('Publishing', frontMatter.title || defaultTitle);
       const response = await fetch(baseUrl, {
         method: 'PUT',
         headers,
         body: JSON.stringify({
           content: markdownContent,
-          title: frontMatter.title || 'Untitled',
+          title: frontMatter.title || defaultTitle,
           summary: frontMatter.summary,
           slug: frontMatter.slug,
         }),
@@ -168,7 +170,7 @@ async function publishSingleArticle(filePath: string, settings: Settings, retryC
           return { success: false, error, auth_error: true };
         }
         if (retryCount < MAX_RETRIES) {
-          logger.retry(frontMatter.title || 'Untitled', retryCount + 2);
+          logger.retry(frontMatter.title || defaultTitle, retryCount + 2);
           await sleep(RETRY_DELAY);
           return publishSingleArticle(filePath, settings, retryCount + 1);
         }
@@ -209,7 +211,7 @@ async function publishSingleArticle(filePath: string, settings: Settings, retryC
     return { success: true };
   } catch (error) {
     if (retryCount < MAX_RETRIES) {
-      logger.retry(frontMatter.title || 'Untitled', retryCount + 2);
+      logger.retry(frontMatter.title || defaultTitle, retryCount + 2);
       await sleep(RETRY_DELAY);
       return publishSingleArticle(filePath, settings, retryCount + 1);
     }
@@ -218,11 +220,15 @@ async function publishSingleArticle(filePath: string, settings: Settings, retryC
 }
 
 async function askForConfirmation(files: string[], basePath: string): Promise<boolean> {
+  if (files.length === 0) {
+    return false;
+  }
+
   const previewLimit = 5;
   const preview = files.slice(0, previewLimit);
   const normalizedBasePath = basePath.replace(/\\/g, '/');
 
-  logger.info('Found markdown files:');
+  logger.info('Found publishable markdown files:');
   preview.forEach(file => {
     const normalizedFile = file.replace(/\\/g, '/');
     const relativePath = normalizedFile.startsWith(normalizedBasePath)
@@ -244,7 +250,7 @@ async function askForConfirmation(files: string[], basePath: string): Promise<bo
     default: false
   }]);
 
-  return confirm;
+  return confirm ? true : false;
 }
 
 export async function publishArticle(path: string, settings: Settings, options: PublishOptions = {}) {
@@ -261,15 +267,50 @@ export async function publishArticle(path: string, settings: Settings, options: 
   }
 
   // Get all files to process
-  const files = isDir ? await findMarkdownFiles(path) : [path];
+  const allFiles = isDir ? await findMarkdownFiles(path) : [path];
 
-  if (files.length === 0) {
+  if (allFiles.length === 0) {
     logger.warning('No markdown files found');
     return;
   }
 
+  // Filter out draft files
+  const nonDraftFiles: string[] = [];
+  const draftFiles: string[] = [];
+
+  for (const file of allFiles) {
+    const content = await readFile(file, 'utf-8');
+    const frontMatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
+
+    if (frontMatterMatch) {
+      try {
+        const frontMatter = load(frontMatterMatch[1]) as FrontMatter;
+        if (frontMatter.draft === true) {
+          draftFiles.push(file);
+        } else {
+          nonDraftFiles.push(file);
+        }
+      } catch (e) {
+        // If we can't parse frontmatter, include the file anyway
+        nonDraftFiles.push(file);
+      }
+    } else {
+      // No frontmatter, include the file
+      nonDraftFiles.push(file);
+    }
+  }
+
+  if (draftFiles.length > 0) {
+    logger.info(`Skipping ${draftFiles.length} draft files`);
+  }
+
+  if (nonDraftFiles.length === 0) {
+    logger.warning('No publishable files found (all are drafts)');
+    return;
+  }
+
   // Ask for confirmation before publishing
-  const confirmed = await askForConfirmation(files, path);
+  const confirmed = await askForConfirmation(nonDraftFiles, path);
   if (!confirmed) {
     logger.info('Publishing cancelled');
     return;
@@ -277,7 +318,7 @@ export async function publishArticle(path: string, settings: Settings, options: 
 
   // Initialize statistics
   const stats: PublishStats = {
-    total: files.length,
+    total: nonDraftFiles.length,
     published: 0,
     skipped: 0,
     failed: 0,
@@ -287,11 +328,11 @@ export async function publishArticle(path: string, settings: Settings, options: 
   const failedArticles: FailedArticle[] = [];
   const authFailedArticles: FailedArticle[] = [];
 
-  logger.publishStart(files.length);
+  logger.publishStart(nonDraftFiles.length);
   let completed = 0;
 
   // Create all publish tasks
-  const tasks = files.map(file => async () => {
+  const tasks = nonDraftFiles.map(file => async () => {
     const result = await publishSingleArticle(file, settings);
 
     if (result.success) {
@@ -300,12 +341,21 @@ export async function publishArticle(path: string, settings: Settings, options: 
       stats.failed++;
       const content = await readFile(file, 'utf-8');
       const frontMatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
-      let title = 'Untitled';
+
+      // Get filename without extension as default title
+      const fileName = file.split(/[/\\]/).pop() || '';
+      const fileNameWithoutExt = fileName.replace(/\.[^.]+$/, '');
+      // Convert kebab-case or snake_case to Title Case
+      const defaultTitle = fileNameWithoutExt
+        .replace(/[-_]/g, ' ')
+        .replace(/\b\w/g, (char: string) => char.toUpperCase());
+
+      let title = defaultTitle;
 
       if (frontMatterMatch) {
         try {
           const frontMatter = load(frontMatterMatch[1]) as FrontMatter;
-          title = frontMatter.title || 'Untitled';
+          title = frontMatter.title || defaultTitle;
         } catch { } // Ignore parsing errors
       }
 
@@ -324,7 +374,7 @@ export async function publishArticle(path: string, settings: Settings, options: 
     }
 
     completed++;
-    logger.progress(completed, files.length);
+    logger.progress(completed, nonDraftFiles.length);
   });
 
   // Execute all tasks concurrently
@@ -341,7 +391,6 @@ export async function publishArticle(path: string, settings: Settings, options: 
   // If there are non-auth-related failed articles, show the list and ask for retry
   if (failedArticles.length > 0) {
     logger.failedArticles(failedArticles);
-    logger.retryPrompt(failedArticles.length);
 
     const shouldRetry = await askForRetry();
     if (shouldRetry) {
