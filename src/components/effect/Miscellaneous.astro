@@ -332,4 +332,13 @@ const { count = 200, minSize = 0.1, maxSize = 1, colors = ['#ffecd1', '#fafafa',
     filter: invert(1);
     mix-blend-mode: color-dodge;
   }
+
+  /* Safari-specific styles */
+  @supports (-webkit-touch-callout: none) {
+    canvas {
+      filter: none;
+      mix-blend-mode: soft-light;
+      opacity: 0.8;
+    }
+  }
 </style>

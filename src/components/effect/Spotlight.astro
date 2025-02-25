@@ -28,6 +28,13 @@ interface Props {
    * The width of the beam at the bottom
    */
   bottomWidth?: number;
+  /**
+   * Mobile specific properties
+   */
+  mobileOpacity?: number;
+  mobileBlur?: number;
+  mobileTopWidth?: number;
+  mobileBottomWidth?: number;
 }
 
 const {
@@ -38,6 +45,10 @@ const {
   rotate = 68,
   topWidth = 460,
   bottomWidth = 1680,
+  mobileOpacity,
+  mobileBlur = 60,
+  mobileTopWidth = 420,
+  mobileBottomWidth = 1400,
 } = Astro.props;
 
 // Convert position to actual coordinates
@@ -52,6 +63,59 @@ const dx = Math.sin(rad) * viewBoxHeight * 0.4;
 // Calculate half widths for easier path construction
 const halfTopWidth = topWidth / 2;
 const halfBottomWidth = bottomWidth / 2;
+const halfMobileTopWidth = mobileTopWidth / 2;
+const halfMobileBottomWidth = mobileBottomWidth / 2;
+
+// Client-side detection script
+const clientScript = `
+  document.addEventListener('DOMContentLoaded', () => {
+    const isMobile = window.innerWidth <= 540;
+    const spotlightBeam = document.querySelector('.spotlight-beam');
+    const container = document.querySelector('.spotlight-container');
+
+    if (isMobile && spotlightBeam) {
+      // Mobile position adjustment - shift to the right
+      const mobileX = ${x} + ${viewBoxWidth * 0.08};
+
+      // Apply mobile-specific attributes with adjusted position
+      spotlightBeam.setAttribute('d', \`
+        M \${mobileX - ${halfMobileTopWidth}} -100
+        L \${mobileX - ${halfMobileBottomWidth} + ${dx}} ${viewBoxHeight + 100}
+        L \${mobileX + ${halfMobileBottomWidth} + ${dx}} ${viewBoxHeight + 100}
+        L \${mobileX + ${halfMobileTopWidth}} -100
+        Z
+      \`);
+
+      // Update animation values for mobile with adjusted position
+      const animateD = spotlightBeam.querySelector('animate[attributeName="d"]');
+      if (animateD) {
+        animateD.setAttribute('values', \`
+          M \${mobileX - ${halfMobileTopWidth}} -100
+          L \${mobileX - ${halfMobileTopWidth} * 1.2 + ${dx}} ${viewBoxHeight + 100}
+          L \${mobileX + ${halfMobileTopWidth} * 1.2 + ${dx}} ${viewBoxHeight + 100}
+          L \${mobileX + ${halfMobileTopWidth}} -100
+          Z;
+          M \${mobileX - ${halfMobileTopWidth}} -100
+          L \${mobileX - ${halfMobileBottomWidth} + ${dx}} ${viewBoxHeight + 100}
+          L \${mobileX + ${halfMobileBottomWidth} + ${dx}} ${viewBoxHeight + 100}
+          L \${mobileX + ${halfMobileTopWidth}} -100
+          Z
+        \`);
+      }
+
+      // Apply mobile opacity if provided
+      if (${mobileOpacity !== undefined}) {
+        const animateOpacity = spotlightBeam.querySelector('animate[attributeName="opacity"]');
+        if (animateOpacity) {
+          animateOpacity.setAttribute('values', \`0;${mobileOpacity || opacity * 0.8}\`);
+        }
+      }
+
+      // Add mobile-specific class
+      container.classList.add('mobile');
+    }
+  });
+`;
 ---
 
 <div class="spotlight-container" transition:persist>
@@ -65,6 +129,9 @@ const halfBottomWidth = bottomWidth / 2;
     <defs>
       <filter id="spotlight-blur" color-interpolation-filters="sRGB">
         <feGaussianBlur stdDeviation={blur} />
+      </filter>
+      <filter id="spotlight-blur-mobile" color-interpolation-filters="sRGB">
+        <feGaussianBlur stdDeviation={mobileBlur} />
       </filter>
       <linearGradient id="spotlight-gradient" x1="0.5" y1="0" x2="0.5" y2="1">
         <stop offset="0" stop-color={color} stop-opacity={opacity* 0.65} />
@@ -120,7 +187,9 @@ const halfBottomWidth = bottomWidth / 2;
   </svg>
 </div>
 
-<style define:vars={{ x, dx, halfTopWidth, halfBottomWidth }}>
+<script set:html={clientScript}></script>
+
+<style define:vars={{ x, dx, halfTopWidth, halfBottomWidth, halfMobileTopWidth, halfMobileBottomWidth }}>
   .spotlight-container {
     position: fixed;
     inset: 0;
@@ -133,9 +202,25 @@ const halfBottomWidth = bottomWidth / 2;
     filter: blur(4px);
   }
 
+  .spotlight-container.mobile {
+    filter: blur(8px);
+    mix-blend-mode: screen;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .spotlight-beam {
       opacity: var(--opacity) !important;
+    }
+  }
+
+  @media screen and (max-width: 768px) {
+    .spotlight-container {
+      filter: blur(8px);
+      mix-blend-mode: screen;
+    }
+
+    .spotlight-beam {
+      filter: url(#spotlight-blur-mobile) !important;
     }
   }
 </style>

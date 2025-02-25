@@ -4,6 +4,10 @@ import sitemap from '@astrojs/sitemap';
 import cloudflare from '@astrojs/cloudflare';
 import preact from '@astrojs/preact';
 import postcssVhFix from 'postcss-100vh-fix';
+import dotenv from 'dotenv';
+
+// Load environment variables
+dotenv.config();
 
 import { SITE_URL } from './src/consts';
 
