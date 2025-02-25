@@ -10,7 +10,11 @@ export async function internalAuth(
   }
 
   const authToken = request.headers.get('X-Internal-Auth-Token');
-  const expectedToken = import.meta.env.INTERNAL_AUTH_TOKEN;
+
+  // First try to get token from Cloudflare env, then fall back to Astro env
+  const expectedToken =
+    (locals.runtime?.env?.INTERNAL_AUTH_TOKEN as string) ||
+    import.meta.env.INTERNAL_AUTH_TOKEN;
 
   if (!expectedToken) {
     console.error('INTERNAL_AUTH_TOKEN is not configured');
