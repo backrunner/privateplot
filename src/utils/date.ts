@@ -17,6 +17,6 @@ export const isValidDate = (date: Date | undefined): boolean => {
 
 // Helper function to check if dates are different
 export const areDifferentDates = (date1: Date, date2?: Date): boolean => {
-  if (!date2) return false;
+  if (!date1 || !date2) return false;
   return date1.getTime() !== date2.getTime();
 };
