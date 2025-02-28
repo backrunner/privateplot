@@ -1,5 +1,7 @@
 import MarkdownIt from 'markdown-it';
-import shikiPlugin from '@shikijs/markdown-it';
+import { fromHighlighter } from '@shikijs/markdown-it/core';
+import { createHighlighterCore } from 'shiki/core'
+import { createOnigurumaEngine, type HighlighterGeneric } from 'shiki';
 import { full as emoji } from 'markdown-it-emoji';
 import katex from 'markdown-it-katex';
 import githubAlerts from 'markdown-it-github-alerts';
@@ -18,6 +20,8 @@ export class MarkdownRenderer {
   private static instance: MarkdownRenderer;
   private md: MarkdownIt;
   private initialized = false;
+
+  private highlighter?: HighlighterGeneric<any, any>;
 
   private constructor() {
     this.md = MarkdownIt({
@@ -74,11 +78,40 @@ export class MarkdownRenderer {
   public async initialize(): Promise<void> {
     if (this.initialized) return;
 
-    this.md.use(await shikiPlugin({
-      themes: {
-        light: 'github-light',
-        dark: 'github-dark'
-      }
+    this.highlighter = await createHighlighterCore({
+      themes: [
+         import('@shikijs/themes/github-dark'),
+      ],
+      langs: [
+         import('@shikijs/langs/typescript'),
+         import('@shikijs/langs/json'),
+         import('@shikijs/langs/yaml'),
+         import('@shikijs/langs/javascript'),
+         import('@shikijs/langs/astro'),
+         import('@shikijs/langs/tsx'),
+         import('@shikijs/langs/jsx'),
+         import('@shikijs/langs/vue'),
+         import('@shikijs/langs/python'),
+         import('@shikijs/langs/css'),
+         import('@shikijs/langs/html'),
+         import('@shikijs/langs/xml'),
+         import('@shikijs/langs/go'),
+         import('@shikijs/langs/rust'),
+         import('@shikijs/langs/ruby'),
+         import('@shikijs/langs/swift'),
+         import('@shikijs/langs/ini'),
+         import('@shikijs/langs/toml'),
+         import('@shikijs/langs/bash'),
+         import('@shikijs/langs/powershell'),
+         import('@shikijs/langs/nginx'),
+         import('@shikijs/langs/docker'),
+      ],
+      // @ts-ignore
+      engine: createOnigurumaEngine(() => import('shiki/onig.wasm')),
+    }) as HighlighterGeneric<any, any>;
+
+    this.md.use(fromHighlighter(this.highlighter, {
+      theme: 'github-dark',
     }));
 
     this.initialized = true;

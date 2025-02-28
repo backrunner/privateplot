@@ -75,8 +75,23 @@ export class ArticleService {
     return { meta, content: cleanContent };
   }
 
+  /**
+   * Invalidates article-related cache entries
+   * This is more precise than clearing the entire cache
+   */
   private async invalidateCache(): Promise<void> {
-    await this.cache.clear();
+    // Clear the article list cache
+    await this.cache.delete('list');
+
+    // Get all articles to clear individual article caches
+    const dbArticles = await this.db.select({ slug: articles.slug }).from(articles);
+
+    // Clear cache for each article by slug
+    await Promise.all(
+      dbArticles.map(article => this.cache.delete(`article/${article.slug}`))
+    );
+
+    // Notify RSS service that cache has been invalidated
     this.eventBus.emit(RSS_EVENTS.CACHE_INVALIDATED);
   }
 

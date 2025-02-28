@@ -71,15 +71,4 @@ export class CacheService {
     const cacheKey = this.getCacheKey(key);
     await cache.delete(cacheKey);
   }
-
-  /**
-   * Clear all cache entries for this namespace
-   */
-  async clear(): Promise<void> {
-    const cache = await this.getCache();
-    if (!cache) return;
-
-    const keys = await cache.keys();
-    await Promise.all(keys.map(key => cache.delete(key)));
-  }
-} 
+}
