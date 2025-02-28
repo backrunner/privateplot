@@ -26,6 +26,39 @@ export class CacheService {
   }
 
   /**
+   * Recursively restores Date objects from ISO strings in the parsed JSON data
+   * Detects ISO 8601 date strings and converts them back to Date objects
+   */
+  private restoreDates(obj: any): any {
+    if (obj === null || obj === undefined) {
+      return obj;
+    }
+
+    if (typeof obj === 'string') {
+      // ISO 8601 date format regex
+      const isoDateRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})?$/;
+      if (isoDateRegex.test(obj)) {
+        return new Date(obj);
+      }
+      return obj;
+    }
+
+    if (Array.isArray(obj)) {
+      return obj.map(item => this.restoreDates(item));
+    }
+
+    if (typeof obj === 'object') {
+      for (const key in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+          obj[key] = this.restoreDates(obj[key]);
+        }
+      }
+    }
+
+    return obj;
+  }
+
+  /**
    * Get data from cache
    */
   async get<T>(key: string): Promise<T | null> {
@@ -36,7 +69,9 @@ export class CacheService {
 
     const cachedResponse = await cache.match(cacheKey);
     if (cachedResponse) {
-      const data = await cachedResponse.json() as T;
+      const rawData = await cachedResponse.json();
+      // Restore Date objects from the parsed JSON
+      const data = this.restoreDates(rawData) as T;
       return data;
     }
 
