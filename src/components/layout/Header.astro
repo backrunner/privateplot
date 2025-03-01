@@ -1,11 +1,11 @@
 ---
-import { SITE_TITLE } from '../../consts';
+import { SITE_TITLE, AVATAR_URL } from '../../consts';
 ---
 
 <header class="site-header">
   <a href="/" class="left-section">
     <div class="site-avatar">
-      <img src="/avatar.png" alt={SITE_TITLE} />
+      <img src={AVATAR_URL} alt={SITE_TITLE} />
     </div>
     <div class="site-title">{SITE_TITLE}</div>
   </a>

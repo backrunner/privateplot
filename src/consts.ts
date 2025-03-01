@@ -7,7 +7,6 @@ export const SITE_KEYWORDS = 'BackRunner, Tech Blogs, Frontend Development';
 export const SITE_URL = 'https://backrunner.blog';
 export const ENABLE_COPYRIGHT = true;
 export const ENABLE_POWERED_BY = true;
-
-// Friend Links
 export const FRIEND_LINKS_TITLE = '友情链接';
 export const FRIEND_LINKS_DESCRIPTION = '感谢这些朋友们，让我们在网络中相遇';
+export const AVATAR_URL = 'https://images.backrunner.blog/avatar.png';
