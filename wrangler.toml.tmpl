@@ -1,0 +1,17 @@
+# wrangler.toml
+name = "privateplot"
+compatibility_date = "2025-01-01"
+compatibility_flags = [ "nodejs_compat" ]
+pages_build_output_dir = "dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "privateplot"
+database_id = "YOUR_DATABASE_ID"
+preview_database_id = "YOUR_PREVIEW_DATABASE_ID"
+
+[placement]
+mode = "smart"
+
+[vars]
+INTERNAL_AUTH_TOKEN = "YOUR_INTERNAL_AUTH_TOKEN"
