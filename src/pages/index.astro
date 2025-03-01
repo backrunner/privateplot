@@ -5,7 +5,7 @@ import { useConstsWithRuntime } from '../consts';
 
 import Page from '../components/layout/Page.astro';
 
-const { SITE_DESCRIPTION, SITE_KEYWORDS } = useConstsWithRuntime(Astro.locals.runtime);
+const { SITE_TITLE, SITE_DESCRIPTION, SITE_KEYWORDS } = useConstsWithRuntime(Astro.locals.runtime);
 
 const ITEMS_PER_PAGE = 10;
 const articleService = new ArticleService(Astro.locals.runtime.env.DB);
@@ -33,6 +33,7 @@ const total = articles.length;
 
 <Page>
   <Fragment slot="meta">
+    <title>{SITE_TITLE}</title>
     <meta name="description" content={SITE_DESCRIPTION} />
     <meta name="keywords" content={SITE_KEYWORDS} />
   </Fragment>

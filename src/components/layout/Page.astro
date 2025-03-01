@@ -7,7 +7,7 @@ import Footer from './Footer.astro';
 import { useConstsWithRuntime } from '../../consts';
 import '../../styles/global.scss';
 
-const { SITE_TITLE, AVATAR_URL } = useConstsWithRuntime(Astro.locals.runtime);
+const { AVATAR_URL } = useConstsWithRuntime(Astro.locals.runtime);
 
 // General cache settings
 Astro.response.headers.set('Cache-Control', 'public, max-age=3600');
@@ -21,8 +21,6 @@ Astro.response.headers.set('Cache-Control', 'public, max-age=3600');
     <link rel="icon" type="image/png" href={AVATAR_URL} />
     <link rel="apple-touch-icon" href={AVATAR_URL} />
     <link rel="shortcut icon" href={AVATAR_URL} />
-    <title>{SITE_TITLE}</title>
-    <slot name="head" />
     <ClientRouter />
   </head>
   <body>
