@@ -11,7 +11,7 @@
 
 ## 🌌 Features
 
-- Astro + React, flexible base framework for contents.
+- Astro + Preact, flexible and light weight base framework for contents.
 - Customized [Artalk](https://artalk.js.org/) intergrated, easy to setup a comment system
 - Running on Cloudflare Pages.
 - Based on SSR, no page generation.

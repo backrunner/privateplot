@@ -30,7 +30,7 @@
     "@paralleldrive/cuid2": "^2.2.2",
     "@shikijs/markdown-it": "^3.1.0",
     "artalk": "^2.9.1",
-    "astro": "^5.4.0",
+    "astro": "^5.4.1",
     "drizzle-orm": "^0.39.3",
     "js-yaml": "^4.1.0",
     "katex": "^0.16.21",
@@ -41,7 +41,7 @@
     "markdown-it-task-lists": "^2.1.1",
     "marked": "^15.0.7",
     "postcss-100vh-fix": "^1.0.2",
-    "preact": "^10.26.3",
+    "preact": "^10.26.4",
     "shiki": "^3.1.0",
     "slugify": "^1.6.6"
   },
@@ -54,7 +54,7 @@
     "gray-matter": "^4.0.3",
     "patch-package": "^8.0.0",
     "sass": "^1.85.1",
-    "typescript": "^5.7.3",
+    "typescript": "^5.8.2",
     "wrangler": "^3.111.0"
   }
 }
