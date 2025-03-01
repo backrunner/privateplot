@@ -4,7 +4,7 @@ import { useConstsWithRuntime } from '../../consts';
 const { SITE_TITLE, AVATAR_URL } = useConstsWithRuntime(Astro.locals.runtime);
 ---
 
-<header class="site-header">
+<header class="site-header" transition:persist>
   <a href="/" class="left-section">
     <div class="site-avatar">
       <img src={AVATAR_URL} alt={SITE_TITLE} />

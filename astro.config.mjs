@@ -17,6 +17,7 @@ export default defineConfig({
   site: process.env.SITE_URL || SITE_URL,
   integrations: [sitemap(), preact()],
   adapter: cloudflare(),
+  prefetch: true,
   vite: {
     ...(process.env.ALLOWED_HOSTS
       ? {
