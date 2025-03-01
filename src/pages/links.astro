@@ -1,11 +1,12 @@
 ---
 
-import { FRIEND_LINKS_TITLE, FRIEND_LINKS_DESCRIPTION } from '../consts';
+import { useConstsWithRuntime } from '../consts';
 import Page from '../components/layout/Page.astro';
 import FriendLink from '../components/business/FriendLink.astro';
 import type { FriendLink as FriendLinkType } from '../db/schema';
 import { FriendLinkService } from '../services/FriendLinkService';
 
+const { FRIEND_LINKS_TITLE, FRIEND_LINKS_DESCRIPTION } = useConstsWithRuntime(Astro.locals.runtime);
 const friendLinkService = new FriendLinkService(Astro.locals.runtime.env.DB);
 const friendLinks = await friendLinkService.getActive();
 ---

@@ -1,5 +1,7 @@
 ---
-import { ENABLE_COPYRIGHT, ENABLE_POWERED_BY } from '../../consts';
+import { useConstsWithRuntime } from '../../consts';
+
+const { ENABLE_COPYRIGHT, ENABLE_POWERED_BY } = useConstsWithRuntime(Astro.locals.runtime);
 ---
 
 <footer class="page-footer">

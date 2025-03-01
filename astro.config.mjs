@@ -14,7 +14,7 @@ import { SITE_URL } from './src/consts';
 // https://astro.build/config
 export default defineConfig({
   output: 'server',
-  site: SITE_URL,
+  site: process.env.SITE_URL || SITE_URL,
   integrations: [sitemap(), preact()],
   adapter: cloudflare(),
   vite: {

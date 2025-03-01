@@ -1,6 +1,4 @@
-import type { D1Database } from '@cloudflare/workers-types';
 import rss from '@astrojs/rss';
-import { SITE_TITLE, SITE_DESCRIPTION } from '../consts';
 import { ArticleService } from './ArticleService';
 import { CacheService } from './CacheService';
 import { EventBus } from '../utils/eventbus';
@@ -14,21 +12,22 @@ export class RSSService {
   private cache: CacheService;
   private articleService: ArticleService;
   private eventBus: EventBus;
+  private readonly env: Env;
 
-  private constructor(d1: D1Database) {
+  private constructor(env: Env) {
     this.cache = new CacheService('rss');
-    this.articleService = new ArticleService(d1);
+    this.articleService = new ArticleService(env.DB);
     this.eventBus = EventBus.getInstance();
-
+    this.env = env;
     // Listen to RSS cache invalidation events
     this.eventBus.on(RSS_EVENTS.CACHE_INVALIDATED, () => {
       this.invalidateCache();
     });
   }
 
-  public static getInstance(d1: D1Database): RSSService {
+  public static getInstance(env: Env): RSSService {
     if (!RSSService.instance) {
-      RSSService.instance = new RSSService(d1);
+      RSSService.instance = new RSSService(env);
     }
     return RSSService.instance;
   }
@@ -49,8 +48,8 @@ export class RSSService {
 
     const articles = await this.articleService.list();
     const feed = await rss({
-      title: SITE_TITLE,
-      description: SITE_DESCRIPTION,
+      title: this.env.SITE_TITLE,
+      description: this.env.SITE_DESCRIPTION,
       site: siteUrl,
       items: articles.map((article) => ({
         title: article.title,

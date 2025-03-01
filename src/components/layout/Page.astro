@@ -4,8 +4,10 @@ import Spotlight from '../effect/Spotlight.astro';
 import Miscellaneous from '../effect/Miscellaneous.astro';
 import Header from './Header.astro';
 import Footer from './Footer.astro';
-import { SITE_TITLE, SITE_DESCRIPTION, SITE_KEYWORDS, AVATAR_URL } from '../../consts';
+import { useConstsWithRuntime } from '../../consts';
 import '../../styles/global.scss';
+
+const { SITE_TITLE, SITE_DESCRIPTION, SITE_KEYWORDS, AVATAR_URL } = useConstsWithRuntime(Astro.locals.runtime);
 ---
 
 <html lang="en">

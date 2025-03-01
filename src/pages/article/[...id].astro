@@ -3,7 +3,9 @@ import Page from '../../components/layout/Page.astro';
 import ArticleContent from '../../components/business/ArticleContent.astro';
 import { ArticleService } from '../../services/ArticleService';
 import { MarkdownRenderer } from '../../utils/markdown';
-import { SITE_TITLE } from '../../consts';
+import { useConstsWithRuntime } from '../../consts';
+
+const { SITE_TITLE } = useConstsWithRuntime(Astro.locals.runtime);
 
 // Get the article id from URL params
 const { id } = Astro.params;

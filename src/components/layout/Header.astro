@@ -1,5 +1,7 @@
 ---
-import { SITE_TITLE, AVATAR_URL } from '../../consts';
+import { useConstsWithRuntime } from '../../consts';
+
+const { SITE_TITLE, AVATAR_URL } = useConstsWithRuntime(Astro.locals.runtime);
 ---
 
 <header class="site-header">
