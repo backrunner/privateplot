@@ -36,6 +36,16 @@ const total = articles.length;
     <title>{SITE_TITLE}</title>
     <meta name="description" content={SITE_DESCRIPTION} />
     <meta name="keywords" content={SITE_KEYWORDS} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={Astro.url.href} />
+    <meta property="og:title" content={SITE_TITLE} />
+    <meta property="og:description" content={SITE_DESCRIPTION} />
+    <meta property="og:site_name" content={SITE_TITLE} />
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content={Astro.url.href} />
+    <meta property="twitter:title" content={SITE_TITLE} />
+    <meta property="twitter:description" content={SITE_DESCRIPTION} />
+    <link rel="canonical" href={Astro.url.href} />
   </Fragment>
 	<ArticleList client:load initialArticles={initialArticles} initialHasMore={hasMore} total={total} />
 </Page>
