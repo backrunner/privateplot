@@ -1,0 +1,10 @@
+{
+	"id": "privateplot-obsidian-plugin",
+	"name": "PrivatePlot Obsidian Plugin",
+	"version": "0.1.0",
+	"minAppVersion": "0.15.0",
+	"description": "Publish and delete articles to PrivatePlot from Obsidian",
+	"author": "PrivatePlot",
+	"authorUrl": "https://github.com/backrunner",
+	"isDesktopOnly": false
+}

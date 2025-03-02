@@ -1,4 +1,6 @@
-import { defineMiddleware } from 'astro:middleware';
+import { defineMiddleware, sequence } from 'astro:middleware';
 import { internalAuth } from './middleware/internalAuth';
+import { cors } from './middleware/cors';
 
-export const onRequest = defineMiddleware(internalAuth);
+// Create a middleware sequence that runs cors first, then internalAuth
+export const onRequest = defineMiddleware(sequence(cors, internalAuth));

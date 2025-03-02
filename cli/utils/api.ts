@@ -1,6 +1,7 @@
 import type { Settings } from '../types';
 import { getAuthToken } from './config';
 import { logger } from './logger';
+import { normalizeHost } from './host';
 
 /**
  * Ensures a URL has the correct protocol prefix
@@ -8,8 +9,8 @@ import { logger } from './logger';
  * @returns URL with correct protocol
  */
 export function getBaseUrl(host: string): string {
-  // Remove any existing protocol
-  let cleanHost = host.replace(/^(https?:\/\/)/, '');
+  // Remove any existing protocol and trailing slashes
+  const cleanHost = normalizeHost(host);
 
   // Add appropriate protocol
   const protocol = cleanHost === 'localhost' || cleanHost.startsWith('localhost:') ? 'http' : 'https';

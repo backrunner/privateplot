@@ -6,6 +6,7 @@ import { getAuthToken } from '../utils/config';
 import { logger } from '../utils/logger';
 import { isMarkdownFile } from '../utils/files';
 import { apiRequest } from '../utils/api';
+import { normalizeHost } from '../utils/host';
 
 async function askForConfirmation(title: string, path: string): Promise<boolean> {
   const rl = createInterface({
@@ -55,7 +56,7 @@ export async function deleteArticle(filePath: string, settings: Settings) {
     process.exit(1);
   }
 
-  if (frontMatter['privateplot-host'] !== settings.instanceHost) {
+  if (normalizeHost(frontMatter['privateplot-host']) !== normalizeHost(settings.instanceHost)) {
     logger.error('Article was published to a different host. Please use the correct host to delete it');
     process.exit(1);
   }

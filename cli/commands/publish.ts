@@ -1,10 +1,10 @@
 import { load, dump } from 'js-yaml';
 import { readFile, writeFile } from 'node:fs/promises';
 import type { Settings, FrontMatter, ArticleResponse, PublishStats, FailedArticle, PublishOptions } from '../types';
-import { getAuthToken } from '../utils/config';
 import { logger } from '../utils/logger';
 import { isMarkdownFile, isDirectory, findMarkdownFiles, hasFileChanged } from '../utils/files';
 import { apiRequest } from '../utils/api';
+import { normalizeHost } from '../utils/host';
 
 const MAX_RETRIES = 2;
 const RETRY_DELAY = 1000; // 1 second
@@ -104,7 +104,11 @@ async function publishSingleArticle(filePath: string, settings: Settings, retryC
   }
 
   try {
-    if (frontMatter['privateplot-id'] && frontMatter['privateplot-host'] === settings.instanceHost) {
+    // Compare normalized hosts instead of direct comparison
+    const normalizedFrontMatterHost = normalizeHost(frontMatter['privateplot-host']);
+    const normalizedSettingsHost = normalizeHost(settings.instanceHost);
+
+    if (frontMatter['privateplot-id'] && normalizedFrontMatterHost === normalizedSettingsHost) {
       logger.articleAction('Updating', frontMatter.title || defaultTitle);
 
       const result = await apiRequest<ArticleResponse>(settings, {
@@ -158,7 +162,7 @@ async function publishSingleArticle(filePath: string, settings: Settings, retryC
       frontMatter = {
         ...frontMatter,
         'privateplot-id': result.data?.id,
-        'privateplot-host': settings.instanceHost,
+        'privateplot-host': normalizeHost(settings.instanceHost),
       };
     }
 
