@@ -66,6 +66,10 @@
   color: var(--text-80);
 }
 
+.article-block__time-tag--desktop-only {
+  display: inline-block;
+}
+
 .article-block__content {
   display: flex;
   flex-direction: column;
@@ -96,21 +100,8 @@
   }
 }
 
-/* Screen reader only class */
-:global(.sr-only) {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
-}
-
 /* Mobile responsive styles for screens below 540px */
-@media (max-width: 540px) {
+@media screen and (max-width: 540px) {
   .article-block {
     padding: 1rem;
     border-radius: 1.5rem;
@@ -135,6 +126,10 @@
     flex-direction: column;
     gap: 0.5rem;
     margin-bottom: 0.75rem;
+  }
+
+  .article-block__time-tag--desktop-only {
+    display: none;
   }
 
   .article-block__time-tag {

@@ -10,10 +10,11 @@ interface Props {
   slug: string;
 }
 
-const { title, createdDate, updatedDate, meta, slug } = Astro.props;
+const { title, createdDate, updatedDate, slug } = Astro.props;
 
 const showCreatedDate = isValidDate(createdDate);
 const showUpdatedDate = isValidDate(updatedDate) && areDifferentDates(createdDate, updatedDate);
+const onlyCreatedDate = showCreatedDate && !showUpdatedDate;
 ---
 
 <article class="article-content">
@@ -24,8 +25,9 @@ const showUpdatedDate = isValidDate(updatedDate) && areDifferentDates(createdDat
     </div>
 
     <div class="meta">
-      {showCreatedDate && <span class="date-capsule">Created: {formatDate(createdDate)}</span>}
       {showUpdatedDate && updatedDate && <span class="date-capsule">Updated: {formatDate(updatedDate)}</span>}
+      {showCreatedDate && !onlyCreatedDate && <span class="date-capsule date-capsule--desktop-only">Created: {formatDate(createdDate)}</span>}
+      {onlyCreatedDate && <span class="date-capsule">{formatDate(createdDate)}</span>}
     </div>
 
     <div class="content">
@@ -103,6 +105,14 @@ const showUpdatedDate = isValidDate(updatedDate) && areDifferentDates(createdDat
         @media (max-width: 540px) {
           padding: 0.25rem 0.5rem;
           font-size: 0.75rem;
+        }
+      }
+
+      .date-capsule--desktop-only {
+        display: inline-block;
+
+        @media (max-width: 540px) {
+          display: none;
         }
       }
     }

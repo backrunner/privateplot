@@ -13,6 +13,7 @@ interface Props {
 export const ArticleBlock = ({ title, summary, createdAt, updatedAt, slug }: Props) => {
   const showCreatedDate = isValidDate(createdAt);
   const showUpdatedDate = isValidDate(updatedAt) && areDifferentDates(createdAt, updatedAt);
+  const onlyCreatedDate = showCreatedDate && !showUpdatedDate;
 
   return (
     <article class={styles['article-block']}>
@@ -24,14 +25,13 @@ export const ArticleBlock = ({ title, summary, createdAt, updatedAt, slug }: Pro
       </div>
       <div class={styles['article-block__time-info']}>
         {showUpdatedDate && (
-          <span class={styles['article-block__time-tag']}>
-            <span class="sr-only">Updated:</span> {formatDate(updatedAt!)}
-          </span>
+          <span class={styles['article-block__time-tag']}>Updated: {formatDate(updatedAt!)}</span>
         )}
-        {showCreatedDate && (
-          <span class={styles['article-block__time-tag']}>
-            <span class="sr-only">Created:</span> {formatDate(createdAt)}
-          </span>
+        {showCreatedDate && !onlyCreatedDate && (
+          <span class={`${styles['article-block__time-tag']} ${styles['article-block__time-tag--desktop-only']}`}>Created: {formatDate(createdAt)}</span>
+        )}
+        {onlyCreatedDate && (
+          <span class={styles['article-block__time-tag']}>{formatDate(createdAt)}</span>
         )}
       </div>
       <div class={styles['article-block__content']}>
