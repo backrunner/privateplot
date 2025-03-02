@@ -1,5 +1,5 @@
 ---
-import { formatDate, isValidDate, areDifferentDates } from '../../utils/date';
+import { formatDate, isValidDate, areDifferentDates, getDateOptionsFromCf } from '../../utils/date';
 import { ArticleComment } from './ArticleComment';
 
 interface Props {
@@ -15,6 +15,7 @@ const { title, createdDate, updatedDate, slug } = Astro.props;
 const showCreatedDate = isValidDate(createdDate);
 const showUpdatedDate = isValidDate(updatedDate) && areDifferentDates(createdDate, updatedDate);
 const onlyCreatedDate = showCreatedDate && !showUpdatedDate;
+const dateFormatOptions = getDateOptionsFromCf(Astro.locals.runtime.cf);
 ---
 
 <article class="article-content">
@@ -25,9 +26,9 @@ const onlyCreatedDate = showCreatedDate && !showUpdatedDate;
     </div>
 
     <div class="meta">
-      {showUpdatedDate && updatedDate && <span class="date-capsule">Updated: {formatDate(updatedDate)}</span>}
-      {showCreatedDate && !onlyCreatedDate && <span class="date-capsule date-capsule--desktop-only">Created: {formatDate(createdDate)}</span>}
-      {onlyCreatedDate && <span class="date-capsule">{formatDate(createdDate)}</span>}
+      {showUpdatedDate && updatedDate && <span class="date-capsule">Updated: {formatDate(updatedDate, dateFormatOptions)}</span>}
+      {showCreatedDate && !onlyCreatedDate && <span class="date-capsule date-capsule--desktop-only">Created: {formatDate(createdDate, dateFormatOptions)}</span>}
+      {onlyCreatedDate && <span class="date-capsule">{formatDate(createdDate, dateFormatOptions)}</span>}
     </div>
 
     <div class="content">

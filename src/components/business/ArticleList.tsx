@@ -3,6 +3,7 @@ import type { Article } from '../../types/article';
 
 import { ArticleBlock } from './ArticleBlock';
 import styles from './ArticleList.module.scss';
+import type { DateFormatOptions } from '../../utils/date';
 
 type ListArticle = Omit<Article, 'content' | 'rendered'>;
 
@@ -23,9 +24,10 @@ interface Props {
   initialArticles: ListArticle[];
   initialHasMore: boolean;
   total: number;
+  dateFormatOptions?: DateFormatOptions;
 }
 
-export const ArticleList = ({ initialArticles, initialHasMore, total }: Props) => {
+export const ArticleList = ({ initialArticles, initialHasMore, total, dateFormatOptions }: Props) => {
   const [articles, setArticles] = useState<ListArticle[]>(initialArticles);
   const [hasMore, setHasMore] = useState(initialHasMore);
   const [loading, setLoading] = useState(false);
@@ -100,6 +102,7 @@ export const ArticleList = ({ initialArticles, initialHasMore, total }: Props) =
               updatedAt={article.updatedDate || undefined}
               slug={article.slug}
               meta={article.meta}
+              dateFormatOptions={dateFormatOptions}
             />
           ))
         ) : (

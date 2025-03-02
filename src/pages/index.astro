@@ -4,6 +4,7 @@ import { ArticleService } from '../services/ArticleService';
 import { useConstsWithRuntime } from '../consts';
 
 import Page from '../components/layout/Page.astro';
+import { getDateOptionsFromCf } from '../utils/date';
 
 const { SITE_TITLE, SITE_DESCRIPTION, SITE_KEYWORDS } = useConstsWithRuntime(Astro.locals.runtime);
 
@@ -29,6 +30,8 @@ const initialArticles = sortedArticles.slice(0, ITEMS_PER_PAGE).map(({ id, title
 
 const hasMore = articles.length > ITEMS_PER_PAGE;
 const total = articles.length;
+
+const dateFormatOptions = getDateOptionsFromCf(Astro.locals.runtime.cf);
 ---
 
 <Page>
@@ -47,5 +50,11 @@ const total = articles.length;
     <meta property="twitter:description" content={SITE_DESCRIPTION} />
     <link rel="canonical" href={Astro.url.href} />
   </Fragment>
-	<ArticleList client:load initialArticles={initialArticles} initialHasMore={hasMore} total={total} />
+	<ArticleList
+    client:load
+    initialArticles={initialArticles}
+    initialHasMore={hasMore}
+    total={total}
+    dateFormatOptions={dateFormatOptions}
+  />
 </Page>
