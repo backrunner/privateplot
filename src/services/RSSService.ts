@@ -2,6 +2,7 @@ import rss from '@astrojs/rss';
 import { ArticleService } from './ArticleService';
 import { CacheService } from './CacheService';
 import { EventBus } from '../utils/eventbus';
+import { XMLValidator } from '../utils/xml';
 
 export const RSS_EVENTS = {
   CACHE_INVALIDATED: 'rss:cache:invalidated',
@@ -36,90 +37,15 @@ export class RSSService {
     await this.cache.delete('feed');
   }
 
-  /**
-   * Validates if the XML string is well-formed
-   * @param xml The XML string to validate
-   * @returns True if the XML is valid, false otherwise
-   */
-  private isValidXML(xml: string): boolean {
-    try {
-      // Basic structure validation
-      if (!xml || typeof xml !== 'string') {
-        console.error('Invalid RSS: Not a string');
-        return false;
-      }
-
-      // Check if it starts with XML declaration or RSS tag
-      if (!xml.trim().startsWith('<?xml') && !xml.trim().startsWith('<rss')) {
-        console.error('Invalid RSS: Missing XML declaration or RSS root element');
-        return false;
-      }
-
-      // Check for basic RSS structure
-      if (!xml.includes('<rss') || !xml.includes('</rss>')) {
-        console.error('Invalid RSS: Missing RSS tags');
-        return false;
-      }
-
-      // Check for channel element
-      if (!xml.includes('<channel>') || !xml.includes('</channel>')) {
-        console.error('Invalid RSS: Missing channel tags');
-        return false;
-      }
-
-      // Check for required elements in channel
-      if (!xml.includes('<title>') || !xml.includes('</title>')) {
-        console.error('Invalid RSS: Missing title tags');
-        return false;
-      }
-
-      // Check for well-formed XML by looking for unmatched tags
-      // This is a simplified check and not a full XML parser
-      const openTags: string[] = [];
-      const tagRegex = /<\/?([a-zA-Z0-9:]+)[^>]*>/g;
-      let match;
-
-      while ((match = tagRegex.exec(xml)) !== null) {
-        const fullTag = match[0];
-        const tagName = match[1];
-
-        // Skip self-closing tags and processing instructions
-        if (fullTag.endsWith('/>') || fullTag.startsWith('<?')) {
-          continue;
-        }
-
-        // Check if it's an opening or closing tag
-        if (fullTag.startsWith('</')) {
-          // Closing tag
-          if (openTags.length === 0 || openTags[openTags.length - 1] !== tagName) {
-            console.error(`Invalid RSS: Unmatched closing tag ${tagName}`);
-            return false;
-          }
-          openTags.pop();
-        } else {
-          // Opening tag
-          openTags.push(tagName);
-        }
-      }
-
-      // Check if all tags are closed
-      if (openTags.length > 0) {
-        console.error(`Invalid RSS: Unclosed tags: ${openTags.join(', ')}`);
-        return false;
-      }
-
-      return true;
-    } catch (error) {
-      console.error('XML validation error:', error);
-      return false;
-    }
-  }
-
   public async generateFeed(siteUrl: URL): Promise<Response> {
     const cachedFeed = await this.cache.get<string>('feed');
     if (cachedFeed) {
       // Validate the cached XML before returning it
-      if (this.isValidXML(cachedFeed)) {
+      if (XMLValidator.isValid(cachedFeed, {
+        rootElement: 'rss',
+        requiredElements: ['channel', 'title'],
+        logPrefix: 'RSS'
+      })) {
         return new Response(cachedFeed, {
           headers: {
             'Content-Type': 'application/xml',
@@ -150,7 +76,11 @@ export class RSSService {
     const feedText = await cloned.text();
 
     // Validate the generated XML before caching
-    if (this.isValidXML(feedText)) {
+    if (XMLValidator.isValid(feedText, {
+      rootElement: 'rss',
+      requiredElements: ['channel', 'title'],
+      logPrefix: 'RSS'
+    })) {
       await this.cache.set('feed', feedText, 3600); // Cache for 1 hour
     } else {
       console.error('Generated RSS XML is invalid, not caching');
