@@ -27,4 +27,4 @@
 
 ## 🧾 License
 
-Apache 2.0
+Apache 2.0 (Private image assets are not included)

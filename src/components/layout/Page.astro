@@ -1,5 +1,6 @@
 ---
-import { ClientRouter } from 'astro:transitions';
+import { pwaAssetsHead } from 'virtual:pwa-assets/head';
+
 import Spotlight from '../effect/Spotlight.astro';
 import Miscellaneous from '../effect/Miscellaneous.astro';
 import Header from './Header.astro';
@@ -18,10 +19,11 @@ Astro.response.headers.set('Cache-Control', 'public, max-age=3600');
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <slot name="meta" />
-    <link rel="icon" type="image/png" href={AVATAR_URL} />
-    <link rel="apple-touch-icon" href={AVATAR_URL} />
-    <link rel="shortcut icon" href={AVATAR_URL} />
-    <ClientRouter />
+    <script src="/src/pwa.ts"></script>
+    { pwaAssetsHead.themeColor && <meta name="theme-color" content={pwaAssetsHead.themeColor.content} /> }
+    { pwaAssetsHead.links.map(link => (
+        <link {...link} />
+    )) }
   </head>
   <body>
     <div class="page-container">
