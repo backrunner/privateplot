@@ -32,7 +32,8 @@ export default defineConfig({
       },
       workbox: {
         navigateFallback: '/',
-        globPatterns: ['**/*.{css,js,html,svg,png,ico,txt}'],
+        globPatterns: ['**/*.{css,js,svg,png,ico,txt}'],
+        globIgnores: ['_worker.js/**/*.js', '**/*.{html}'],
         navigateFallbackAllowlist: [/^\/$/],
         runtimeCaching: [{
           urlPattern: ({ url, sameOrigin, request }) => sameOrigin && request.mode === 'navigate' && !url.pathname.match(/^\/$/),
