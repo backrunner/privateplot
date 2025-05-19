@@ -43,6 +43,20 @@ interface ArticleResponse {
 }
 
 /**
+ * Patch fetch to bypass the cors issue, the app://obsidian.md is not standard and will be modified by Cloudflare
+ */
+import nfetch from 'node-fetch';
+
+// @ts-ignore
+globalThis.fetch = nfetch
+// @ts-ignore
+globalThis.Headers = nfetch.Headers
+// @ts-ignore
+globalThis.Request = nfetch.Request
+// @ts-ignore
+globalThis.Response = nfetch.Response
+
+/**
  * Normalizes a host string by removing protocol and trailing slashes
  * @param host - The host string to normalize
  * @returns The normalized host string
@@ -370,8 +384,7 @@ export default class PrivateplotPlugin extends Plugin {
 
 				await this.app.vault.modify(file, updatedContent);
 				new Notice(
-					`Successfully published ${
-						frontMatter.title || defaultTitle
+					`Successfully published ${frontMatter.title || defaultTitle
 					}`
 				);
 			} catch (error) {
