@@ -9,6 +9,9 @@ import { FriendLinkService } from '../services/FriendLinkService';
 const { FRIEND_LINKS_TITLE, FRIEND_LINKS_DESCRIPTION } = useConstsWithRuntime(Astro.locals.runtime);
 const friendLinkService = new FriendLinkService(Astro.locals.runtime.env.DB);
 const friendLinks = await friendLinkService.getActive();
+
+// Set cache headers for edge caching
+Astro.response.headers.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
 ---
 
 <Page>

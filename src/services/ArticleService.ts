@@ -5,6 +5,9 @@ import type { D1Database } from '@cloudflare/workers-types';
 import type { Article } from '../types/article';
 import { getDb } from '../db';
 import { articles } from '../db/schema';
+
+// Metadata type for listing articles without content/rendered fields
+export type ArticleMetadata = Omit<Article, 'content' | 'rendered'>;
 import { CacheService } from './CacheService';
 import { RSS_EVENTS } from './RSSService';
 import { EventBus } from '../utils/eventbus';
@@ -22,26 +25,6 @@ export class ArticleService {
     this.db = getDb(d1);
     this.markdownRenderer = MarkdownRenderer.getInstance();
     this.eventBus = EventBus.getInstance();
-  }
-
-  private async ensureRendered(article: Article): Promise<Article> {
-    if (article.rendered !== null) {
-      return article;
-    }
-
-    await this.markdownRenderer.initialize();
-    const renderedArticle = {
-      ...article,
-      rendered: this.markdownRenderer.render(article.content)
-    };
-
-    // Update the rendered content in database
-    await this.db
-      .update(articles)
-      .set({ rendered: renderedArticle.rendered })
-      .where(eq(articles.id, article.id));
-
-    return renderedArticle;
   }
 
   private extractMetaFromContent(content: string): { meta: Record<string, any> | null, content: string } {
@@ -80,8 +63,9 @@ export class ArticleService {
    * This is more precise than clearing the entire cache
    */
   private async invalidateCache(): Promise<void> {
-    // Clear the article list cache
+    // Clear the article list caches
     await this.cache.delete('list');
+    await this.cache.delete('list-metadata');
 
     // Get all articles to clear individual article caches
     const dbArticles = await this.db.select({ slug: articles.slug }).from(articles);
@@ -96,27 +80,55 @@ export class ArticleService {
   }
 
   /**
-   * List all articles
+   * List all articles with full content
+   * Note: Articles are pre-rendered during create/update, no runtime rendering needed
    */
   async list(): Promise<Article[]> {
     const cachedData = await this.cache.get<Article[]>('list');
     if (cachedData) {
-      return Promise.all(cachedData.map(article => this.ensureRendered(article)));
+      return cachedData;
     }
 
     const dbArticles = await this.db.select().from(articles);
-    const renderedArticles = await Promise.all(dbArticles.map(article => this.ensureRendered(article)));
-    await this.cache.set('list', renderedArticles);
-    return renderedArticles;
+    await this.cache.set('list', dbArticles);
+    return dbArticles;
+  }
+
+  /**
+   * List all articles with metadata only (no content/rendered)
+   * Use this for listing pages where full content is not needed
+   */
+  async listMetadata(): Promise<ArticleMetadata[]> {
+    const cacheKey = 'list-metadata';
+    const cachedData = await this.cache.get<ArticleMetadata[]>(cacheKey);
+    if (cachedData) {
+      return cachedData;
+    }
+
+    const dbArticles = await this.db
+      .select({
+        id: articles.id,
+        title: articles.title,
+        slug: articles.slug,
+        summary: articles.summary,
+        meta: articles.meta,
+        createdDate: articles.createdDate,
+        updatedDate: articles.updatedDate,
+      })
+      .from(articles);
+
+    await this.cache.set(cacheKey, dbArticles);
+    return dbArticles as ArticleMetadata[];
   }
 
   /**
    * Get a single article by slug
+   * Note: Articles are pre-rendered during create/update, no runtime rendering needed
    */
   async getBySlug(slug: string): Promise<Article | undefined> {
     const cachedData = await this.cache.get<Article>(`article/${slug}`);
     if (cachedData) {
-      return this.ensureRendered(cachedData);
+      return cachedData;
     }
 
     const results = await this.db
@@ -126,9 +138,8 @@ export class ArticleService {
 
     const article = results[0];
     if (article) {
-      const renderedArticle = await this.ensureRendered(article);
-      await this.cache.set(`article/${slug}`, renderedArticle);
-      return renderedArticle;
+      await this.cache.set(`article/${slug}`, article);
+      return article;
     }
 
     return undefined;

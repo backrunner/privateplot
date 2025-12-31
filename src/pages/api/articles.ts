@@ -8,7 +8,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
   const articleService = new ArticleService(locals.runtime.env.DB);
 
   const page = Number(url.searchParams.get('page')) || 1;
-  const articles = await articleService.list();
+  const articles = await articleService.listMetadata();
   const sortedArticles = articles.sort((a, b) =>
     new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime()
   );
@@ -31,7 +31,8 @@ export const GET: APIRoute = async ({ request, locals }) => {
     total: articles.length
   }), {
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600'
     }
   });
 };

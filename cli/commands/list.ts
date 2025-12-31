@@ -1,9 +1,19 @@
 import chalk from 'chalk';
 import Table from 'cli-table3';
 
-import { Settings } from '../types';
+import type { Settings } from '../types';
 import { getAuthToken } from '../utils/config';
 import { logger } from '../utils/logger';
+
+interface ArticlesResponse {
+  articles: Array<{
+    id: string;
+    title: string;
+    createdAt: string;
+    updatedAt?: string;
+  }>;
+  total: number;
+}
 
 export async function listArticles(settings: Settings) {
   const authToken = await getAuthToken(settings);
@@ -50,7 +60,7 @@ export async function listArticles(settings: Settings) {
       process.exit(1);
     }
 
-    const data = await response.json();
+    const data = await response.json() as ArticlesResponse;
     const articles = data.articles;
 
     if (articles.length === 0) {

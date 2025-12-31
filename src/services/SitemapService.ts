@@ -87,8 +87,8 @@ export class SitemapService {
       }
     }
 
-    // Get all articles
-    const articles = await this.articleService.list();
+    // Get all articles (metadata only)
+    const articles = await this.articleService.listMetadata();
 
     // Generate sitemap XML
     const sitemap = this.generateSitemapXML(siteUrl, articles);

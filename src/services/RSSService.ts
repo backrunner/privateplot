@@ -58,7 +58,7 @@ export class RSSService {
       }
     }
 
-    const articles = await this.articleService.list();
+    const articles = await this.articleService.listMetadata();
     const feed = await rss({
       title: this.env.SITE_TITLE,
       description: this.env.SITE_DESCRIPTION,

@@ -48,6 +48,9 @@ const processedKeywords = Array.isArray(keywords)
   : typeof keywords === 'string'
     ? keywords
     : undefined;
+
+// Set cache headers for edge caching
+Astro.response.headers.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
 ---
 
 <Page>

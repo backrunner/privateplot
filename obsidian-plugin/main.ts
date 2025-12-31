@@ -82,7 +82,7 @@ function getBaseUrl(host: string): string {
 }
 
 export default class PrivateplotPlugin extends Plugin {
-	settings: PrivateplotSettings;
+	settings!: PrivateplotSettings;
 
 	async onload() {
 		await this.loadSettings();

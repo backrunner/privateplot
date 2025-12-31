@@ -10,7 +10,7 @@ const { SITE_TITLE, SITE_DESCRIPTION, SITE_KEYWORDS } = useConstsWithRuntime(Ast
 
 const ITEMS_PER_PAGE = 10;
 const articleService = new ArticleService(Astro.locals.runtime.env.DB);
-const articles = await articleService.list();
+const articles = await articleService.listMetadata();
 const sortedArticles = articles.sort((a, b) =>
   new Date(b.createdDate).getTime() - new Date(a.createdDate).getTime()
 );
@@ -32,6 +32,9 @@ const hasMore = articles.length > ITEMS_PER_PAGE;
 const total = articles.length;
 
 const dateFormatOptions = getDateOptionsFromCf(Astro.locals.runtime.cf);
+
+// Set cache headers for edge caching
+Astro.response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=3600');
 ---
 
 <Page>
